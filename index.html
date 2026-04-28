@@ -756,6 +756,11 @@
           <option>CASAL</option><option>DUPLO</option><option>TRIPLO</option>
           <option>INDIVIDUAL</option><option>QUADRUPLO</option><option>CAFÉ DA MANHA</option>
         </select>
+        <select class="toolbar-select" id="filtro-pag" onchange="filtrar()">
+          <option value="">Todos</option>
+          <option value="pago">✅ Pago</option>
+          <option value="pendente">⏳ Pendente</option>
+        </select>
         <button class="btn-novo" onclick="abrirModal()">＋ Nova Reserva</button>
       </div>
 
@@ -1081,23 +1086,25 @@ function formatValor(v) {
 function atualizarCards() {
   const total = todasReservas.length;
   const valorTotal = todasReservas.reduce((s,r) => s + (parseFloat(r.valor) || 0), 0);
-  const empresas = new Set(todasReservas.map(r => r.empresa)).size;
+  const pendentes = todasReservas.filter(r => !r.dataPg).length;
+  const pagos = todasReservas.filter(r => !!r.dataPg).length;
+  const valorPendente = todasReservas.filter(r => !r.dataPg).reduce((s,r) => s + (parseFloat(r.valor) || 0), 0);
 
   document.getElementById('cards-reservas').innerHTML = `
     <div class="card-stat">
-      <div class="card-label">Total de Reservas</div>
+      <div class="card-label">Total de Diárias</div>
       <div class="card-valor">${total}</div>
-      <div class="card-sub">em todos os meses</div>
+      <div class="card-sub">${pagos} pagas · ${pendentes} pendentes</div>
     </div>
     <div class="card-stat destaque">
-      <div class="card-label">Valor Total</div>
-      <div class="card-valor">${formatValor(valorTotal)}</div>
-      <div class="card-sub">soma de hospedagens</div>
+      <div class="card-label">A Receber (Pendente)</div>
+      <div class="card-valor">${formatValor(valorPendente)}</div>
+      <div class="card-sub">${pendentes} diária(s) sem pagamento</div>
     </div>
     <div class="card-stat info">
-      <div class="card-label">Empresas</div>
-      <div class="card-valor">${empresas}</div>
-      <div class="card-sub">agências diferentes</div>
+      <div class="card-label">Total Geral</div>
+      <div class="card-valor">${formatValor(valorTotal)}</div>
+      <div class="card-sub">soma de todas as diárias</div>
     </div>
   `;
 }
@@ -1106,11 +1113,14 @@ function filtrar() {
   const busca = document.getElementById('busca').value.toLowerCase();
   const mes = document.getElementById('filtro-mes').value;
   const tipo = document.getElementById('filtro-tipo').value.toUpperCase();
+  const pag = document.getElementById('filtro-pag').value;
 
   reservasFiltradas = todasReservas.filter(r => {
     if (busca && !r.empresa.toLowerCase().includes(busca)) return false;
     if (mes && r.mes !== mes) return false;
     if (tipo && r.tipo !== tipo) return false;
+    if (pag === 'pago' && !r.dataPg) return false;
+    if (pag === 'pendente' && r.dataPg) return false;
     return true;
   });
 
@@ -1142,10 +1152,15 @@ function renderTabela() {
 
   let html = `<table><thead><tr>
     <th>Empresa</th><th>Mês</th><th>Data</th><th>Acomodação</th>
-    <th>Qtd</th><th>Valor Unit.</th><th>Data Pag.</th><th>Obs.</th><th>Ações</th>
+    <th>Qtd</th><th>Valor Unit.</th><th>Obs.</th><th>Data Pag.</th><th>Status</th><th>Ações</th>
   </tr></thead><tbody>`;
 
   reservasFiltradas.forEach((r, i) => {
+    const pago = !!r.dataPg;
+    const statusBadge = pago
+      ? `<span style="display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;background:#dcfce7;color:#166534">✅ Pago</span>`
+      : `<span style="display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;background:#fef9c3;color:#854d0e">⏳ Pendente</span>`;
+
     html += `<tr>
       <td class="td-empresa">${r.empresa || '—'}</td>
       <td>${r.mes}</td>
@@ -1153,8 +1168,9 @@ function renderTabela() {
       <td>${getBadgeTipo(r.tipo)}</td>
       <td>${r.qtd || '—'}</td>
       <td class="td-valor">${formatValor(r.valor)}</td>
-      <td>${formatDate(r.dataPg)}</td>
       <td>${r.obs || '—'}</td>
+      <td>${formatDate(r.dataPg)}</td>
+      <td>${statusBadge}</td>
       <td><div class="td-acoes">
         <button class="btn-editar" title="Editar" onclick="editarReserva(${i})">✏️</button>
         <button class="btn-deletar" title="Excluir" onclick="excluirReserva(${i})">🗑️</button>
