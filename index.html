@@ -1,0 +1,641 @@
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); }
+.tabs { display: flex; gap: 4px; margin-bottom: 1.5rem; border-bottom: 0.5px solid var(--color-border-tertiary); padding-bottom: 0; }
+.tab { padding: 8px 16px; font-size: 14px; cursor: pointer; border: none; background: none; color: var(--color-text-secondary); border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.tab.active { color: var(--color-text-primary); border-bottom: 2px solid var(--color-text-primary); font-weight: 500; }
+.card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem; }
+.metric { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 1rem; }
+.metric-label { font-size: 12px; color: var(--color-text-secondary); margin-bottom: 4px; }
+.metric-value { font-size: 22px; font-weight: 500; }
+.grid4 { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 12px; margin-bottom: 1.5rem; }
+.grid2 { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px; margin-bottom: 1.5rem; }
+label { font-size: 13px; color: var(--color-text-secondary); display: block; margin-bottom: 4px; }
+select, input[type=text], input[type=number], input[type=date] { width: 100%; padding: 8px 10px; font-size: 14px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); background: var(--color-background-primary); color: var(--color-text-primary); }
+.form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 12px; }
+.btn { padding: 8px 16px; font-size: 14px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); cursor: pointer; background: var(--color-background-primary); color: var(--color-text-primary); }
+.btn-primary { background: var(--color-text-primary); color: var(--color-background-primary); border-color: var(--color-text-primary); }
+.btn-sm { padding: 4px 10px; font-size: 12px; }
+.badge { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 11px; font-weight: 500; }
+.badge-pago { background: #EAF3DE; color: #3B6D11; }
+.badge-devendo { background: #FCEBEB; color: #A32D2D; }
+.badge-parcial { background: #FAEEDA; color: #854F0B; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { font-size: 11px; color: var(--color-text-secondary); font-weight: 500; text-align: left; padding: 6px 8px; border-bottom: 0.5px solid var(--color-border-tertiary); }
+td { padding: 8px 8px; border-bottom: 0.5px solid var(--color-border-tertiary); color: var(--color-text-primary); }
+tr:last-child td { border-bottom: none; }
+.devedor-bar { height: 6px; border-radius: 3px; background: #F0959580; margin-top: 4px; }
+.devedor-fill { height: 100%; border-radius: 3px; background: #E24B4A; }
+.section-title { font-size: 13px; font-weight: 500; color: var(--color-text-secondary); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.05em; }
+.alert { padding: 10px 14px; border-radius: var(--border-radius-md); font-size: 13px; margin-bottom: 12px; }
+.alert-red { background: #FCEBEB; color: #A32D2D; border: 0.5px solid #F7C1C1; }
+.alert-green { background: #EAF3DE; color: #3B6D11; border: 0.5px solid #C0DD97; }
+.section { display: none; }
+.section.active { display: block; }
+.empresa-card { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 0.5px solid var(--color-border-tertiary); }
+.empresa-card:last-child { border-bottom: none; }
+</style>
+
+<h2 class="sr-only">Painel de controle de reservas — Pousada Ecológica</h2>
+
+<div style="padding: 1rem 0;">
+<div class="tabs">
+  <button class="tab active" onclick="showTab('dashboard')">Painel</button>
+  <button class="tab" onclick="showTab('nova')">Nova Reserva</button>
+  <button class="tab" onclick="showTab('devedores')">Quem Me Deve</button>
+  <button class="tab" onclick="showTab('historico')">Histórico</button>
+</div>
+
+<div id="tab-dashboard" class="section active">
+  <div class="grid4" id="metrics"></div>
+  <div class="grid2">
+    <div class="card">
+      <p class="section-title">situação financeira</p>
+      <div id="situacao-fin"></div>
+    </div>
+    <div class="card">
+      <p class="section-title">top empresas devedoras</p>
+      <div id="top-devedores"></div>
+    </div>
+  </div>
+  <div class="card">
+    <p class="section-title" style="margin-bottom:12px">reservas recentes</p>
+    <table>
+      <thead><tr><th>Empresa</th><th>Data</th><th>Tipo</th><th>Valor</th><th>Status</th><th></th></tr></thead>
+      <tbody id="tabela-recente"></tbody>
+    </table>
+  </div>
+</div>
+
+<div id="tab-nova" class="section">
+  <div class="card">
+    <p class="section-title" style="margin-bottom:16px">registrar nova reserva</p>
+    <div class="form-grid">
+      <div>
+        <label>Empresa / Agência</label>
+        <input type="text" id="f-empresa" placeholder="Ex: Nativos, Veredas..." list="lista-empresas">
+        <datalist id="lista-empresas"></datalist>
+      </div>
+      <div>
+        <label>Data de entrada</label>
+        <input type="date" id="f-data">
+      </div>
+      <div>
+        <label>Tipo de acomodação</label>
+        <select id="f-tipo">
+          <option value="">Selecione...</option>
+          <option>Casal</option><option>Duplo</option><option>Individual</option>
+          <option>Triplo</option><option>Quádruplo</option><option>Single</option><option>Café da manhã</option>
+        </select>
+      </div>
+      <div>
+        <label>Quantidade</label>
+        <input type="number" id="f-qtd" value="1" min="1">
+      </div>
+      <div>
+        <label>Valor unitário (R$)</label>
+        <input type="number" id="f-valor" placeholder="Ex: 180">
+      </div>
+      <div>
+        <label>Status do pagamento</label>
+        <select id="f-status">
+          <option value="pago">Pago</option>
+          <option value="devendo">A receber</option>
+          <option value="parcial">Parcial</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-grid">
+      <div>
+        <label>Data do pagamento</label>
+        <input type="date" id="f-data-pg">
+      </div>
+      <div>
+        <label>Observação</label>
+        <input type="text" id="f-obs" placeholder="dinheiro, crédito, etc.">
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:4px">
+      <button class="btn btn-primary" onclick="adicionarReserva()">Salvar reserva</button>
+      <button class="btn" onclick="limparForm()">Limpar</button>
+    </div>
+    <div id="form-msg" style="margin-top:12px;font-size:13px;color:var(--color-text-success);"></div>
+  </div>
+
+  <div class="card" style="margin-top:1rem">
+    <p class="section-title" style="margin-bottom:16px">registrar refeição / jantar</p>
+    <div class="form-grid">
+      <div>
+        <label>Empresa</label>
+        <input type="text" id="r-empresa" placeholder="Ex: Nativos..." list="lista-empresas">
+      </div>
+      <div>
+        <label>Data</label>
+        <input type="date" id="r-data">
+      </div>
+      <div>
+        <label>Qtde de pessoas</label>
+        <input type="number" id="r-qtd" value="1" min="1">
+      </div>
+      <div>
+        <label>Valor por pessoa (R$)</label>
+        <input type="number" id="r-valor" value="40">
+      </div>
+      <div>
+        <label>Status</label>
+        <select id="r-status">
+          <option value="pago">Pago</option>
+          <option value="devendo">A receber</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="adicionarRefeicao()">Salvar refeição</button>
+  </div>
+</div>
+
+<div id="tab-devedores" class="section">
+  <div id="alerta-status"></div>
+  <div class="card">
+    <p class="section-title" style="margin-bottom:12px">empresas com saldo em aberto</p>
+    <div id="lista-devedores"></div>
+  </div>
+  <div style="margin-top:1rem" class="card">
+    <p class="section-title" style="margin-bottom:12px">marcar pagamento recebido</p>
+    <div style="display:flex;gap:8px;align-items:flex-end">
+      <div style="flex:1">
+        <label>Empresa</label>
+        <select id="pg-empresa" style="width:100%"></select>
+      </div>
+      <div style="flex:1">
+        <label>Valor recebido (R$)</label>
+        <input type="number" id="pg-valor" style="width:100%">
+      </div>
+      <button class="btn btn-primary" onclick="registrarPagamento()">Confirmar</button>
+    </div>
+    <div id="pg-msg" style="margin-top:8px;font-size:13px;"></div>
+  </div>
+</div>
+
+<div id="tab-historico" class="section">
+  <div style="display:flex;gap:8px;margin-bottom:1rem;align-items:flex-end">
+    <div style="flex:1"><label>Filtrar empresa</label><input type="text" id="filtro-empresa" oninput="renderHistorico()" placeholder="Digite para filtrar..."></div>
+    <div><label>Status</label><select id="filtro-status" onchange="renderHistorico()"><option value="">Todos</option><option value="pago">Pago</option><option value="devendo">A receber</option><option value="parcial">Parcial</option></select></div>
+  </div>
+  <div class="card">
+    <table>
+      <thead><tr><th>Empresa</th><th>Data</th><th>Tipo</th><th>Qtd</th><th>Valor</th><th>Status</th><th>Ação</th></tr></thead>
+      <tbody id="tabela-historico"></tbody>
+    </table>
+  </div>
+</div>
+</div>
+
+<script>
+let reservas = [];
+let refeicoes = [];
+
+function initData() {
+  const meses = [
+    {nome:'Jan', base: 45659}, {nome:'Fev', base: 45690},
+    {nome:'Mar', base: 45718}, {nome:'Abr', base: 45748},
+    {nome:'Mai', base: 45779}, {nome:'Jun', base: 45809},
+    {nome:'Jul', base: 45839}, {nome:'Ago', base: 45870},
+    {nome:'Set', base: 45900}
+  ];
+
+  const raw = [
+    ['ELETRIZANTE',45659,'Casal',1,160,45672,'pago'],
+    ['ELETRIZANTE',45659,'Single',1,110,45672,'pago'],
+    ['ELETRIZANTE',45659,'Triplo',1,240,45672,'pago'],
+    ['ELETRIZANTE',45659,'Triplo',1,240,45672,'pago'],
+    ['ELETRIZANTE',45659,'Triplo',1,240,45672,'pago'],
+    ['VEREDAS',45659,'Triplo',1,230,45295,'pago'],
+    ['VEREDAS',45659,'Single',1,110,45295,'pago'],
+    ['NATIVOS',45659,'Casal',1,180,45672,'pago'],
+    ['NATIVOS',45659,'Casal',1,180,45672,'pago'],
+    ['NATIVOS',45660,'Casal',1,180,45672,'pago'],
+    ['NATIVOS',45660,'Casal',1,180,45672,'pago'],
+    ['NATIVOS',45660,'Individual',1,150,45672,'pago'],
+    ['JALAPAO PARADISE',45660,'Duplo',1,125,45661,'pago'],
+    ['JALAPAO PARADISE',45660,'Duplo',1,125,45661,'pago'],
+    ['TRILHAS TOUR',45661,'Duplo',1,170,45662,'pago'],
+    ['TRILHAS TOUR',45661,'Casal',1,170,45662,'pago'],
+    ['NATIVOS',45662,'Casal',1,180,45672,'pago'],
+    ['NATIVOS',45662,'Casal',1,180,45672,'pago'],
+    ['NATIVOS',45662,'Individual',1,150,45672,'pago'],
+    ['VEREDAS',45663,'Duplo',1,160,45665,'pago'],
+    ['NATIVOS',45664,'Casal',1,180,45672,'pago'],
+    ['NATIVOS',45664,'Duplo',1,180,45672,'pago'],
+    ['TRILHAS TOUR',45665,'Duplo',1,170,45667,'pago'],
+    ['TRILHAS TOUR',45665,'Casal',1,170,45667,'pago'],
+    ['TRILHAS TOUR',45665,'Casal',1,170,45667,'pago'],
+    ['NATIVOS',45665,'Triplo',1,260,45672,'pago'],
+    ['NATIVOS',45665,'Casal',1,180,45672,'pago'],
+    ['NATIVOS',45665,'Individual',1,150,45672,'pago'],
+    ['PARK DO SOL',45666,'Casal',1,170,45669,'pago'],
+    ['NATIVOS',45667,'Casal',1,180,45672,'pago'],
+    ['NATIVOS',45667,'Casal',1,180,45672,'pago'],
+    ['NATIVOS',45667,'Individual',1,150,45672,'pago'],
+    ['VEREDAS',45670,'Duplo',1,160,45671,'pago'],
+    ['JALAPAO VIAGENS',45670,'Duplo',1,170,45671,'pago'],
+    ['JALAPAO VIAGENS',45670,'Single',1,120,45671,'pago'],
+    ['COWBOY TURISMO',45670,'Duplo',1,180,45673,'pago'],
+    ['JALAPAO DREAN',45670,'Single',1,120,45676,'pago'],
+    ['NATIVOS',45671,'Casal',1,180,45672,'pago'],
+    ['NATIVOS',45671,'Casal',1,180,45672,'pago'],
+    ['NATIVOS',45671,'Casal',1,180,45672,'pago'],
+    ['NATIVOS',45671,'Casal',1,180,45672,'pago'],
+    ['NATIVOS',45671,'Duplo',1,180,45672,'pago'],
+    ['NATIVOS',45671,'Duplo',1,180,45672,'pago'],
+    ['NATIVOS',45671,'Duplo',1,180,45672,'pago'],
+    ['NATIVOS',45671,'Individual',1,150,45672,'pago'],
+    ['NATIVOS',45671,'Individual',1,150,45672,'pago'],
+    ['NATIVOS',45672,'Casal',1,180,45672,'pago'],
+    ['NATIVOS',45672,'Casal',1,180,45672,'pago'],
+    ['NATIVOS',45672,'Duplo',1,180,45672,'pago'],
+    ['NATIVOS',45672,'Duplo',1,180,45672,'pago'],
+    ['NATIVOS',45672,'Individual',1,150,45672,'pago'],
+    ['NATIVOS',45672,'Individual',1,150,45672,'pago'],
+    ['JALAPAO PARADISE',45673,'Duplo',1,180,45677,'pago'],
+    ['NATIVOS',45673,'Casal',1,180,45691,'devendo'],
+    ['NATIVOS',45673,'Individual',1,150,45691,'devendo'],
+    ['NATIVOS',45673,'Individual',1,150,45691,'devendo'],
+    ['NATIVOS',45675,'Casal',1,180,45691,'devendo'],
+    ['NATIVOS',45675,'Casal',1,180,45691,'devendo'],
+    ['NATIVOS',45676,'Casal',1,180,45691,'devendo'],
+    ['NATIVOS',45676,'Casal',1,180,45691,'devendo'],
+    ['COWBOY TURISMO',45676,'Casal',1,180,45681,'pago'],
+    ['COWBOY TURISMO',45676,'Individual',1,150,45681,'pago'],
+    ['TRILHAS TOUR',45676,'Duplo',1,170,45677,'pago'],
+    ['TRILHAS TOUR',45676,'Duplo',1,170,45677,'pago'],
+    ['NATIVOS',45677,'Casal',1,180,45691,'devendo'],
+    ['NATIVOS',45677,'Individual',1,150,45691,'devendo'],
+    ['NATIVOS',45677,'Individual',1,150,45691,'devendo'],
+    ['ANDORINHAS',45677,'Quádruplo',1,320,45679,'pago'],
+    ['ANDORINHAS',45678,'Quádruplo',1,320,45679,'pago'],
+    ['NATIVOS',45678,'Casal',1,180,45691,'devendo'],
+    ['NATIVOS',45678,'Casal',1,180,45691,'devendo'],
+    ['NATIVOS',45678,'Individual',1,150,45691,'devendo'],
+    ['MR',45678,'Duplo',1,180,45682,'pago'],
+    ['NATIVOS',45679,'Casal',1,180,45691,'devendo'],
+    ['NATIVOS',45679,'Casal',1,180,45691,'devendo'],
+    ['NATIVOS',45679,'Individual',1,150,45691,'devendo'],
+    ['NATIVOS',45679,'Triplo',1,260,45691,'devendo'],
+    ['AGRESTE',45679,'Duplo',1,180,45684,'pago'],
+    ['VEREDAS',45679,'Single',1,110,45684,'pago'],
+    ['VEREDAS',45679,'Single',1,110,45684,'pago'],
+    ['VEREDAS',45679,'Triplo',1,250,45682,'pago'],
+    ['NATIVOS',45680,'Casal',1,180,45691,'devendo'],
+    ['NATIVOS',45680,'Casal',1,180,45691,'devendo'],
+    ['NATIVOS',45680,'Individual',1,150,45691,'devendo'],
+    ['AGRESTE',45680,'Duplo',1,180,45684,'pago'],
+    ['ANDORINHAS',45680,'Casal',1,180,45681,'pago'],
+    ['ANDORINHAS',45680,'Duplo',1,180,45681,'pago'],
+    ['VEREDAS',45682,'Triplo',1,220,45683,'pago'],
+    ['FELIPE',45682,'Casal',1,120,45683,'pago'],
+    ['LANE',45682,'Casal',1,150,45683,'pago'],
+    ['MR',45684,'Casal',1,180,45686,'pago'],
+    ['MR',45684,'Casal',1,180,45686,'pago'],
+    ['MR',45684,'Casal',1,180,45686,'pago'],
+    ['MR',45684,'Casal',1,180,45686,'pago'],
+    ['MR',45684,'Duplo',1,180,45686,'pago'],
+    ['MR',45684,'Duplo',1,180,45686,'pago'],
+    ['MR',45684,'Duplo',1,180,45686,'pago'],
+    ['MR',45684,'Triplo',1,260,45686,'pago'],
+    ['MR',45684,'Triplo',1,260,45686,'pago'],
+    ['NATIVOS',45685,'Casal',1,180,45691,'devendo'],
+    ['VEREDAS',45685,'Individual',1,110,45687,'pago'],
+    ['VEREDAS',45685,'Casal',1,170,45687,'pago'],
+    ['NATIVOS',45686,'Casal',1,180,45691,'devendo'],
+    ['NATIVOS',45686,'Triplo',1,260,45691,'devendo'],
+    ['VEREDAS',45686,'Individual',1,110,45687,'pago'],
+    ['VEREDAS',45686,'Casal',1,170,45687,'pago'],
+    ['HELDER',45686,'Individual',1,130,45687,'pago'],
+    ['NATIVOS',45687,'Triplo',1,180,45691,'devendo'],
+    ['NATIVOS',45687,'Casal',1,260,45691,'devendo'],
+    ['NATIVOS',45687,'Individual',1,150,45691,'devendo'],
+    ['NATIVOS',45687,'Individual',1,150,45691,'devendo'],
+    ['TRILHAS TOUR',45687,'Casal',1,170,45690,'pago'],
+    ['BAMBAM',45688,'Individual',1,130,45688,'pago'],
+    ['NATIVOS',45690,'Casal',1,180,45341,'pago'],
+    ['NATIVOS',45690,'Triplo',1,260,45341,'pago'],
+    ['NATIVOS',45690,'Individual',1,150,45341,'pago'],
+    ['I9 JALAPAO',45691,'Individual',1,150,45692,'pago'],
+    ['I9 JALAPAO',45691,'Individual',1,150,45692,'pago'],
+    ['I9 JALAPAO',45691,'Individual',1,150,45692,'pago'],
+    ['I9 JALAPAO',45691,'Duplo',1,180,45692,'pago'],
+    ['I9 JALAPAO',45691,'Duplo',1,180,45692,'pago'],
+    ['I9 JALAPAO',45691,'Duplo',1,180,45692,'pago'],
+    ['I9 JALAPAO',45691,'Casal',1,180,45692,'pago'],
+    ['I9 JALAPAO',45691,'Casal',1,180,45692,'pago'],
+    ['I9 JALAPAO',45691,'Casal',1,180,45692,'pago'],
+    ['I9 JALAPAO',45691,'Casal',1,180,45692,'pago'],
+    ['I9 JALAPAO',45691,'Casal',1,180,45692,'pago'],
+    ['I9 JALAPAO',45691,'Triplo',1,260,45692,'pago'],
+    ['ELETRIZANTE',45692,'Duplo',1,160,45707,'pago'],
+    ['ELETRIZANTE',45692,'Casal',1,160,45707,'pago'],
+    ['ELETRIZANTE',45692,'Casal',1,160,45707,'pago'],
+    ['VEREDAS',45693,'Casal',1,160,45696,'pago'],
+  ];
+
+  raw.forEach((r,i) => {
+    const d = new Date(1899,11,30);
+    d.setDate(d.getDate() + r[1]);
+    const dp = new Date(1899,11,30);
+    dp.setDate(dp.getDate() + r[5]);
+    reservas.push({
+      id: i, empresa: r[0], data: d, tipo: r[2], qtd: r[3],
+      valor: r[4] * r[3], dataPg: dp, status: r[6], obs: ''
+    });
+  });
+
+  const refRaw = [
+    ['NATIVOS',45671,16,40,'pago'],['NATIVOS',45672,10,40,'pago'],
+    ['NATIVOS',45673,4,40,'pago'],['I9 JALAPAO',45673,6,40,'pago'],
+    ['OFF ROAD',45673,3,40,'pago'],['JALAPAO PARADISE',45673,2,40,'pago'],
+    ['ANDORINHAS',45678,4,40,'pago'],['MR',45678,2,40,'pago'],
+    ['I9 JALAPAO',45678,4,40,'pago'],['NATIVOS',45678,5,40,'pago'],
+    ['NATIVOS',45679,8,40,'pago'],['AGRESTE',45679,2,40,'pago'],
+    ['VEREDAS',45679,2,40,'pago'],['NATIVOS',45680,5,40,'pago'],
+    ['AGRESTE',45680,2,40,'pago'],['ANDORINHAS',45680,4,40,'pago'],
+    ['MR',45684,20,40,'pago'],
+  ];
+  refRaw.forEach((r,i) => {
+    const d = new Date(1899,11,30);
+    d.setDate(d.getDate() + r[1]);
+    refeicoes.push({ id:'r'+i, empresa:r[0], data:d, qtd:r[2], valorUnit:r[3], valor:r[2]*r[3], status:r[4] });
+  });
+}
+
+function excelDate(serial) {
+  const d = new Date(1899,11,30);
+  d.setDate(d.getDate() + serial);
+  return d;
+}
+
+function fmtDate(d) {
+  if (!d || isNaN(d)) return '-';
+  return d.toLocaleDateString('pt-BR', {day:'2-digit',month:'2-digit'});
+}
+
+function fmtBRL(v) {
+  return 'R$ ' + Math.round(v).toLocaleString('pt-BR');
+}
+
+function getDevedores() {
+  const map = {};
+  [...reservas, ...refeicoes].forEach(r => {
+    if (r.status !== 'pago') {
+      if (!map[r.empresa]) map[r.empresa] = 0;
+      map[r.empresa] += r.valor;
+    }
+  });
+  return map;
+}
+
+function getTotalRecebido() {
+  return [...reservas, ...refeicoes].filter(r => r.status === 'pago').reduce((s,r)=>s+r.valor,0);
+}
+
+function getTotalAReceber() {
+  const d = getDevedores();
+  return Object.values(d).reduce((s,v)=>s+v,0);
+}
+
+function renderMetrics() {
+  const totalBruto = [...reservas, ...refeicoes].reduce((s,r)=>s+r.valor,0);
+  const recebido = getTotalRecebido();
+  const aReceber = getTotalAReceber();
+  const qtdReservas = reservas.length;
+  const el = document.getElementById('metrics');
+  const pct = totalBruto > 0 ? Math.round(recebido/totalBruto*100) : 0;
+  el.innerHTML = `
+    <div class="metric"><div class="metric-label">Receita total</div><div class="metric-value">${fmtBRL(totalBruto)}</div></div>
+    <div class="metric"><div class="metric-label">Já recebido</div><div class="metric-value" style="color:#3B6D11">${fmtBRL(recebido)}</div></div>
+    <div class="metric"><div class="metric-label">A receber</div><div class="metric-value" style="color:#A32D2D">${fmtBRL(aReceber)}</div></div>
+    <div class="metric"><div class="metric-label">Reservas cadastradas</div><div class="metric-value">${qtdReservas}</div></div>
+  `;
+}
+
+function renderSituacaoFin() {
+  const recebido = getTotalRecebido();
+  const aReceber = getTotalAReceber();
+  const total = recebido + aReceber;
+  const pct = total > 0 ? Math.round(recebido/total*100) : 0;
+  const el = document.getElementById('situacao-fin');
+  const status = pct >= 80 ? 'verde' : pct >= 50 ? 'amarelo' : 'vermelho';
+  const cor = status === 'verde' ? '#3B6D11' : status === 'amarelo' ? '#854F0B' : '#A32D2D';
+  const bgCor = status === 'verde' ? '#EAF3DE' : status === 'amarelo' ? '#FAEEDA' : '#FCEBEB';
+  const msg = status === 'verde' ? 'Situação saudável! A maioria dos pagamentos está em dia.' :
+              status === 'amarelo' ? 'Atenção! Mais da metade ainda está a receber.' :
+              'Alerta! Grande parte dos valores está em aberto.';
+  el.innerHTML = `
+    <div style="background:${bgCor};border-radius:8px;padding:12px;margin-bottom:12px">
+      <p style="font-size:13px;color:${cor};font-weight:500">${msg}</p>
+    </div>
+    <div style="margin-bottom:8px">
+      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--color-text-secondary);margin-bottom:4px">
+        <span>Recebido</span><span>${pct}%</span>
+      </div>
+      <div style="height:8px;background:var(--color-background-secondary);border-radius:4px">
+        <div style="height:100%;width:${pct}%;background:${cor};border-radius:4px;transition:width 0.5s"></div>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:12px;margin-top:8px">
+      <span style="color:var(--color-text-secondary)">Recebido: <strong style="color:${cor}">${fmtBRL(recebido)}</strong></span>
+      <span style="color:var(--color-text-secondary)">Pendente: <strong style="color:#A32D2D">${fmtBRL(aReceber)}</strong></span>
+    </div>
+  `;
+}
+
+function renderTopDevedores() {
+  const d = getDevedores();
+  const sorted = Object.entries(d).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const max = sorted[0] ? sorted[0][1] : 1;
+  const el = document.getElementById('top-devedores');
+  if (sorted.length === 0) {
+    el.innerHTML = '<p style="font-size:13px;color:var(--color-text-secondary)">Nenhum devedor! Tudo em dia.</p>';
+    return;
+  }
+  el.innerHTML = sorted.map(([emp, val]) => `
+    <div style="margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:3px">
+        <span style="font-weight:500">${emp}</span>
+        <span style="color:#A32D2D">${fmtBRL(val)}</span>
+      </div>
+      <div class="devedor-bar"><div class="devedor-fill" style="width:${Math.round(val/max*100)}%"></div></div>
+    </div>
+  `).join('');
+}
+
+function renderRecente() {
+  const sorted = [...reservas].sort((a,b)=>b.data-a.data).slice(0,8);
+  const el = document.getElementById('tabela-recente');
+  el.innerHTML = sorted.map(r => `
+    <tr>
+      <td style="font-weight:500">${r.empresa}</td>
+      <td>${fmtDate(r.data)}</td>
+      <td>${r.tipo}</td>
+      <td>${fmtBRL(r.valor)}</td>
+      <td><span class="badge badge-${r.status}">${r.status === 'pago' ? 'Pago' : r.status === 'devendo' ? 'A receber' : 'Parcial'}</span></td>
+      <td><button class="btn btn-sm" onclick="toggleStatus(${r.id})">${r.status === 'pago' ? 'Reabrir' : 'Marcar pago'}</button></td>
+    </tr>
+  `).join('');
+}
+
+function renderDevedores() {
+  const d = getDevedores();
+  const sorted = Object.entries(d).sort((a,b)=>b[1]-a[1]);
+  const total = sorted.reduce((s,[,v])=>s+v,0);
+  const el = document.getElementById('lista-devedores');
+  const alerta = document.getElementById('alerta-status');
+
+  if (total > 5000) {
+    alerta.innerHTML = `<div class="alert alert-red">Você tem <strong>${fmtBRL(total)}</strong> em aberto com ${sorted.length} empresa(s). Considere entrar em contato para cobrar.</div>`;
+  } else if (total > 0) {
+    alerta.innerHTML = `<div class="alert alert-green">Você tem ${fmtBRL(total)} a receber. Valor dentro do esperado.</div>`;
+  } else {
+    alerta.innerHTML = `<div class="alert alert-green">Tudo em dia! Nenhum valor pendente.</div>`;
+  }
+
+  if (sorted.length === 0) {
+    el.innerHTML = '<p style="font-size:13px;color:var(--color-text-secondary);padding:8px 0">Nenhum devedor no momento.</p>';
+    return;
+  }
+
+  el.innerHTML = sorted.map(([emp, val]) => {
+    const pendentes = [...reservas, ...refeicoes].filter(r => r.empresa === emp && r.status !== 'pago');
+    return `
+      <div class="empresa-card">
+        <div>
+          <p style="font-weight:500;font-size:14px">${emp}</p>
+          <p style="font-size:12px;color:var(--color-text-secondary)">${pendentes.length} item(s) pendente(s)</p>
+        </div>
+        <div style="text-align:right">
+          <p style="font-weight:500;color:#A32D2D">${fmtBRL(val)}</p>
+          <button class="btn btn-sm" style="margin-top:4px" onclick="marcarEmpresaPaga('${emp}')">Quitar tudo</button>
+        </div>
+      </div>`;
+  }).join('');
+
+  const pgSel = document.getElementById('pg-empresa');
+  pgSel.innerHTML = sorted.map(([emp])=>`<option value="${emp}">${emp}</option>`).join('');
+}
+
+function renderHistorico() {
+  const filtroEmp = (document.getElementById('filtro-empresa').value || '').toLowerCase();
+  const filtroStatus = document.getElementById('filtro-status').value;
+  const filtered = reservas.filter(r => {
+    const empOk = !filtroEmp || r.empresa.toLowerCase().includes(filtroEmp);
+    const stOk = !filtroStatus || r.status === filtroStatus;
+    return empOk && stOk;
+  }).sort((a,b)=>b.data-a.data);
+  const el = document.getElementById('tabela-historico');
+  el.innerHTML = filtered.map(r => `
+    <tr>
+      <td style="font-weight:500">${r.empresa}</td>
+      <td>${fmtDate(r.data)}</td>
+      <td>${r.tipo}</td>
+      <td>${r.qtd}</td>
+      <td>${fmtBRL(r.valor)}</td>
+      <td><span class="badge badge-${r.status}">${r.status === 'pago' ? 'Pago' : r.status === 'devendo' ? 'A receber' : 'Parcial'}</span></td>
+      <td><button class="btn btn-sm" onclick="toggleStatus(${r.id})">${r.status === 'pago' ? 'Reabrir' : 'Pago'}</button></td>
+    </tr>
+  `).join('');
+}
+
+function renderAll() {
+  renderMetrics();
+  renderSituacaoFin();
+  renderTopDevedores();
+  renderRecente();
+  renderDevedores();
+  renderHistorico();
+  updateDatalist();
+}
+
+function toggleStatus(id) {
+  const r = reservas.find(x=>x.id===id);
+  if (r) { r.status = r.status === 'pago' ? 'devendo' : 'pago'; renderAll(); }
+}
+
+function marcarEmpresaPaga(emp) {
+  [...reservas, ...refeicoes].forEach(r => { if(r.empresa===emp) r.status='pago'; });
+  renderAll();
+}
+
+function registrarPagamento() {
+  const emp = document.getElementById('pg-empresa').value;
+  const val = parseFloat(document.getElementById('pg-valor').value);
+  if (!emp || isNaN(val)) { document.getElementById('pg-msg').innerHTML = '<span style="color:#A32D2D">Preencha empresa e valor.</span>'; return; }
+  let restante = val;
+  [...reservas, ...refeicoes].filter(r=>r.empresa===emp&&r.status!=='pago').forEach(r => {
+    if (restante <= 0) return;
+    if (restante >= r.valor) { r.status='pago'; restante -= r.valor; }
+    else { r.status='parcial'; restante=0; }
+  });
+  document.getElementById('pg-msg').innerHTML = `<span style="color:#3B6D11">Pagamento de ${fmtBRL(val)} registrado para ${emp}.</span>`;
+  renderAll();
+}
+
+function adicionarReserva() {
+  const empresa = document.getElementById('f-empresa').value.trim().toUpperCase();
+  const data = document.getElementById('f-data').value;
+  const tipo = document.getElementById('f-tipo').value;
+  const qtd = parseInt(document.getElementById('f-qtd').value) || 1;
+  const valor = parseFloat(document.getElementById('f-valor').value);
+  const status = document.getElementById('f-status').value;
+  const obs = document.getElementById('f-obs').value;
+  if (!empresa || !data || !tipo || isNaN(valor)) {
+    document.getElementById('form-msg').innerHTML = '<span style="color:#A32D2D">Preencha todos os campos obrigatórios.</span>';
+    return;
+  }
+  const d = new Date(data + 'T00:00:00');
+  const novaId = reservas.length;
+  reservas.push({ id: novaId, empresa, data: d, tipo, qtd, valor: valor*qtd, status, obs });
+  document.getElementById('form-msg').innerHTML = `<span style="color:#3B6D11">Reserva de ${empresa} salva com sucesso!</span>`;
+  limparForm();
+  renderAll();
+}
+
+function adicionarRefeicao() {
+  const empresa = document.getElementById('r-empresa').value.trim().toUpperCase();
+  const data = document.getElementById('r-data').value;
+  const qtd = parseInt(document.getElementById('r-qtd').value) || 1;
+  const valorUnit = parseFloat(document.getElementById('r-valor').value) || 40;
+  const status = document.getElementById('r-status').value;
+  if (!empresa || !data) return;
+  const d = new Date(data + 'T00:00:00');
+  refeicoes.push({ id: 'r'+Date.now(), empresa, data:d, qtd, valorUnit, valor: qtd*valorUnit, status });
+  renderAll();
+  document.getElementById('r-empresa').value='';
+  document.getElementById('r-data').value='';
+}
+
+function limparForm() {
+  ['f-empresa','f-data','f-tipo','f-qtd','f-valor','f-obs','f-data-pg'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el.tagName==='SELECT') el.selectedIndex=0;
+    else if (id==='f-qtd') el.value='1';
+    else el.value='';
+  });
+}
+
+function updateDatalist() {
+  const empresas = [...new Set(reservas.map(r=>r.empresa))].sort();
+  document.getElementById('lista-empresas').innerHTML = empresas.map(e=>`<option value="${e}">`).join('');
+}
+
+function showTab(name) {
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  document.querySelectorAll('.tab').forEach(t => { if(t.textContent.toLowerCase().includes(name==='nova'?'nova':name==='devedores'?'deve':name==='historico'?'hist':'pain')) t.classList.add('active'); });
+  const map = {dashboard:0, nova:1, devedores:2, historico:3};
+  document.querySelectorAll('.tab')[map[name]].classList.add('active');
+}
+
+initData();
+renderAll();
+</script>
