@@ -1,0 +1,1418 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pousada Ecológica — Gestão de Reservas</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --verde: #2d5a27;
+    --verde-claro: #4a8c3f;
+    --verde-musgo: #6b8f5e;
+    --areia: #f5efe6;
+    --areia-escura: #e8ddd0;
+    --terra: #c4956a;
+    --terra-escura: #8b5e3c;
+    --texto: #1a2e16;
+    --texto-suave: #5a6b54;
+    --branco: #fdfaf7;
+    --sombra: rgba(45,90,39,0.12);
+    --borda: #d4c9bb;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--areia);
+    color: var(--texto);
+    min-height: 100vh;
+  }
+
+  /* ── SETUP SCREEN ── */
+  #setup-screen {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #1a2e16 0%, #2d5a27 50%, #4a8c3f 100%);
+    padding: 24px;
+  }
+
+  .setup-card {
+    background: var(--branco);
+    border-radius: 20px;
+    padding: 48px 40px;
+    max-width: 500px;
+    width: 100%;
+    box-shadow: 0 32px 80px rgba(0,0,0,0.3);
+  }
+
+  .setup-logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    color: var(--verde);
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .setup-sub {
+    font-size: 13px;
+    color: var(--texto-suave);
+    margin-bottom: 36px;
+    letter-spacing: 0.5px;
+  }
+
+  .setup-step {
+    display: flex;
+    gap: 14px;
+    margin-bottom: 24px;
+    align-items: flex-start;
+  }
+
+  .step-num {
+    background: var(--verde);
+    color: white;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    font-size: 12px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .step-body label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--verde);
+    margin-bottom: 6px;
+    letter-spacing: 0.3px;
+  }
+
+  .step-body p {
+    font-size: 12px;
+    color: var(--texto-suave);
+    margin-bottom: 8px;
+    line-height: 1.5;
+  }
+
+  .step-body a {
+    color: var(--verde-claro);
+    font-size: 12px;
+  }
+
+  .setup-input {
+    width: 100%;
+    padding: 11px 14px;
+    border: 1.5px solid var(--borda);
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    color: var(--texto);
+    background: var(--areia);
+    transition: border-color 0.2s;
+    outline: none;
+  }
+
+  .setup-input:focus { border-color: var(--verde-claro); background: white; }
+
+  .btn-conectar {
+    width: 100%;
+    padding: 14px;
+    background: var(--verde);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: background 0.2s, transform 0.1s;
+    letter-spacing: 0.3px;
+  }
+
+  .btn-conectar:hover { background: var(--verde-claro); }
+  .btn-conectar:active { transform: scale(0.99); }
+
+  .setup-error {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #b91c1c;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    margin-top: 12px;
+    display: none;
+  }
+
+  /* ── MAIN APP ── */
+  #app { display: none; }
+
+  header {
+    background: linear-gradient(135deg, var(--verde) 0%, var(--verde-claro) 100%);
+    padding: 0 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+    box-shadow: 0 2px 20px var(--sombra);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .header-logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    color: white;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+
+  .header-logo span {
+    font-size: 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    opacity: 0.8;
+    display: block;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .badge-sync {
+    font-size: 12px;
+    color: rgba(255,255,255,0.75);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .dot-sync {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #4ade80;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%,100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .btn-sair {
+    background: rgba(255,255,255,0.15);
+    color: white;
+    border: 1px solid rgba(255,255,255,0.25);
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: background 0.2s;
+  }
+  .btn-sair:hover { background: rgba(255,255,255,0.25); }
+
+  /* ── TABS ── */
+  .tabs {
+    background: white;
+    border-bottom: 1px solid var(--borda);
+    padding: 0 32px;
+    display: flex;
+    gap: 4px;
+  }
+
+  .tab {
+    padding: 16px 20px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--texto-suave);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .tab:hover { color: var(--verde); }
+  .tab.active { color: var(--verde); border-bottom-color: var(--verde); font-weight: 600; }
+
+  /* ── CONTENT ── */
+  .content { padding: 28px 32px; max-width: 1400px; margin: 0 auto; }
+
+  /* ── CARDS RESUMO ── */
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+
+  .card-stat {
+    background: white;
+    border-radius: 14px;
+    padding: 20px 22px;
+    box-shadow: 0 2px 12px var(--sombra);
+    border-left: 4px solid var(--verde-musgo);
+  }
+
+  .card-stat.destaque { border-left-color: var(--terra); }
+  .card-stat.info { border-left-color: var(--verde-claro); }
+
+  .card-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--texto-suave);
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+  .card-valor {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--verde);
+    line-height: 1;
+  }
+
+  .card-stat.destaque .card-valor { color: var(--terra-escura); }
+
+  .card-sub {
+    font-size: 12px;
+    color: var(--texto-suave);
+    margin-top: 6px;
+  }
+
+  /* ── TOOLBAR ── */
+  .toolbar {
+    background: white;
+    border-radius: 14px;
+    padding: 16px 20px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 12px var(--sombra);
+  }
+
+  .toolbar-search {
+    flex: 1;
+    min-width: 200px;
+    padding: 9px 14px 9px 36px;
+    border: 1.5px solid var(--borda);
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    color: var(--texto);
+    background: var(--areia) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%235a6b54' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E") no-repeat 12px center;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .toolbar-search:focus { border-color: var(--verde-claro); background-color: white; }
+
+  .toolbar-select {
+    padding: 9px 14px;
+    border: 1.5px solid var(--borda);
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    color: var(--texto);
+    background: var(--areia);
+    outline: none;
+    cursor: pointer;
+    transition: border-color 0.2s;
+    min-width: 140px;
+  }
+
+  .toolbar-select:focus { border-color: var(--verde-claro); }
+
+  .btn-novo {
+    padding: 9px 18px;
+    background: var(--verde);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .btn-novo:hover { background: var(--verde-claro); }
+
+  /* ── TABELA ── */
+  .tabela-wrap {
+    background: white;
+    border-radius: 14px;
+    box-shadow: 0 2px 12px var(--sombra);
+    overflow: hidden;
+  }
+
+  .tabela-container { overflow-x: auto; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  thead th {
+    background: var(--verde);
+    color: white;
+    padding: 12px 14px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  thead th:first-child { border-radius: 0; }
+
+  tbody tr {
+    border-bottom: 1px solid var(--areia-escura);
+    transition: background 0.15s;
+  }
+
+  tbody tr:hover { background: var(--areia); }
+  tbody tr:last-child { border-bottom: none; }
+
+  tbody td {
+    padding: 11px 14px;
+    color: var(--texto);
+    vertical-align: middle;
+  }
+
+  .td-empresa {
+    font-weight: 600;
+    color: var(--verde);
+  }
+
+  .badge-tipo {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    background: var(--areia-escura);
+    color: var(--texto-suave);
+  }
+
+  .badge-tipo.casal { background: #dcfce7; color: #166534; }
+  .badge-tipo.duplo { background: #dbeafe; color: #1e40af; }
+  .badge-tipo.triplo { background: #fef9c3; color: #854d0e; }
+  .badge-tipo.individual { background: #f3e8ff; color: #6b21a8; }
+  .badge-tipo.quadruplo { background: #ffe4e6; color: #9f1239; }
+
+  .td-valor {
+    font-weight: 600;
+    color: var(--terra-escura);
+    font-family: 'Playfair Display', serif;
+  }
+
+  .td-acoes {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .btn-editar, .btn-deletar {
+    width: 30px;
+    height: 30px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+  }
+
+  .btn-editar { background: #f0fdf4; color: var(--verde); }
+  .btn-editar:hover { background: var(--verde); color: white; }
+  .btn-deletar { background: #fff1f2; color: #e11d48; }
+  .btn-deletar:hover { background: #e11d48; color: white; }
+
+  .tabela-footer {
+    padding: 14px 20px;
+    background: var(--areia);
+    font-size: 12px;
+    color: var(--texto-suave);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-top: 1px solid var(--borda);
+  }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(26,46,22,0.6);
+    backdrop-filter: blur(4px);
+    z-index: 999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--branco);
+    border-radius: 18px;
+    padding: 36px;
+    width: 100%;
+    max-width: 540px;
+    box-shadow: 0 40px 100px rgba(0,0,0,0.3);
+    animation: slideUp 0.25s ease;
+  }
+
+  @keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  .modal-titulo {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    color: var(--verde);
+    font-weight: 700;
+    margin-bottom: 24px;
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .form-grid .full { grid-column: 1 / -1; }
+
+  .form-group label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--texto-suave);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+  }
+
+  .form-group input, .form-group select {
+    width: 100%;
+    padding: 10px 13px;
+    border: 1.5px solid var(--borda);
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    color: var(--texto);
+    background: var(--areia);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .form-group input:focus, .form-group select:focus {
+    border-color: var(--verde-claro);
+    background: white;
+  }
+
+  .modal-acoes {
+    display: flex;
+    gap: 10px;
+    margin-top: 24px;
+    justify-content: flex-end;
+  }
+
+  .btn-cancelar {
+    padding: 10px 20px;
+    background: var(--areia-escura);
+    color: var(--texto-suave);
+    border: none;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .btn-cancelar:hover { background: var(--borda); }
+
+  .btn-salvar {
+    padding: 10px 24px;
+    background: var(--verde);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .btn-salvar:hover { background: var(--verde-claro); }
+  .btn-salvar:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* ── LOADING ── */
+  .loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    flex-direction: column;
+    gap: 14px;
+    color: var(--texto-suave);
+    font-size: 14px;
+  }
+
+  .spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid var(--areia-escura);
+    border-top-color: var(--verde);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--texto-suave);
+    font-size: 14px;
+  }
+
+  .empty-icon { font-size: 40px; margin-bottom: 12px; }
+
+  /* ── ABA DESPESAS ── */
+  .despesas-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+  }
+
+  .despesa-card {
+    background: white;
+    border-radius: 14px;
+    padding: 22px;
+    box-shadow: 0 2px 12px var(--sombra);
+  }
+
+  .despesa-mes {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    color: var(--verde);
+    font-weight: 700;
+    margin-bottom: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .despesa-total {
+    font-size: 20px;
+    color: var(--terra-escura);
+  }
+
+  .despesa-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 7px 0;
+    border-bottom: 1px solid var(--areia-escura);
+    font-size: 13px;
+  }
+
+  .despesa-item:last-child { border-bottom: none; }
+  .despesa-nome { color: var(--texto-suave); }
+  .despesa-valor { font-weight: 600; color: var(--terra-escura); }
+
+  /* ── TOAST ── */
+  #toast {
+    position: fixed;
+    bottom: 28px;
+    right: 28px;
+    background: var(--verde);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 500;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+    z-index: 9999;
+    transform: translateY(80px);
+    opacity: 0;
+    transition: all 0.3s ease;
+  }
+
+  #toast.show { transform: translateY(0); opacity: 1; }
+  #toast.erro { background: #e11d48; }
+
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  @media (max-width: 640px) {
+    header { padding: 0 16px; }
+    .tabs { padding: 0 16px; overflow-x: auto; }
+    .content { padding: 16px; }
+    .form-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- TELA DE CONFIGURAÇÃO -->
+<div id="setup-screen">
+  <div class="setup-card">
+    <div class="setup-logo">🌿 Pousada Ecológica</div>
+    <div class="setup-sub">Conecte sua planilha do Google Sheets</div>
+
+    <div class="setup-step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <label>Google Client ID</label>
+        <p>Crie em <a href="https://console.cloud.google.com/apis/credentials" target="_blank">console.cloud.google.com</a> → Criar credenciais → ID do cliente OAuth 2.0 → Aplicativo da Web. Adicione <b>este arquivo</b> como URI autorizado.</p>
+        <input class="setup-input" id="input-clientid" type="text" placeholder="12345.apps.googleusercontent.com" />
+      </div>
+    </div>
+
+    <div class="setup-step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <label>ID da Planilha</label>
+        <p>É o código na URL da sua planilha: docs.google.com/spreadsheets/d/<b>[ID AQUI]</b>/edit</p>
+        <input class="setup-input" id="input-sheetid" type="text" placeholder="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms" />
+      </div>
+    </div>
+
+    <button class="btn-conectar" onclick="iniciarAuth()">🔑 Conectar ao Google Sheets</button>
+    <div class="setup-error" id="setup-error"></div>
+
+    <p style="font-size:11px;color:#999;margin-top:20px;text-align:center">Seus dados ficam sempre na sua planilha. Nada é armazenado aqui.</p>
+  </div>
+</div>
+
+<!-- APP PRINCIPAL -->
+<div id="app">
+  <header>
+    <div class="header-logo">
+      🌿 Pousada Ecológica
+      <span>Gestão de Reservas</span>
+    </div>
+    <div class="header-actions">
+      <div class="badge-sync">
+        <div class="dot-sync"></div>
+        Conectado
+      </div>
+      <button class="btn-sair" onclick="sair()">Sair</button>
+    </div>
+  </header>
+
+  <div class="tabs">
+    <div class="tab active" onclick="mudarTab('reservas', this)">Hospedagens</div>
+    <div class="tab" onclick="mudarTab('despesas', this)">Despesas</div>
+    <div class="tab" onclick="mudarTab('resumo', this)">Resumo Mensal</div>
+  </div>
+
+  <!-- ABA RESERVAS -->
+  <div id="tab-reservas" class="tab-content active">
+    <div class="content">
+      <div class="cards-grid" id="cards-reservas"></div>
+
+      <div class="toolbar">
+        <input class="toolbar-search" type="text" id="busca" placeholder="Buscar empresa..." oninput="filtrar()" />
+        <select class="toolbar-select" id="filtro-mes" onchange="filtrar()">
+          <option value="">Todos os meses</option>
+          <option>Janeiro</option><option>Fevereiro</option><option>Março</option>
+          <option>Abril</option><option>Maio</option><option>Junho</option>
+          <option>Julho</option><option>Agosto</option><option>Setembro</option>
+          <option>Outubro</option><option>Novembro</option><option>Dezembro</option>
+        </select>
+        <select class="toolbar-select" id="filtro-tipo" onchange="filtrar()">
+          <option value="">Todos os tipos</option>
+          <option>CASAL</option><option>DUPLO</option><option>TRIPLO</option>
+          <option>INDIVIDUAL</option><option>QUADRUPLO</option><option>CAFÉ DA MANHA</option>
+        </select>
+        <button class="btn-novo" onclick="abrirModal()">＋ Nova Reserva</button>
+      </div>
+
+      <div class="tabela-wrap">
+        <div class="tabela-container">
+          <div id="tabela-corpo"></div>
+        </div>
+        <div class="tabela-footer">
+          <span id="info-registros">Carregando...</span>
+          <span id="info-total"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ABA DESPESAS -->
+  <div id="tab-despesas" class="tab-content">
+    <div class="content">
+      <div id="despesas-corpo"><div class="loading"><div class="spinner"></div>Carregando...</div></div>
+    </div>
+  </div>
+
+  <!-- ABA RESUMO -->
+  <div id="tab-resumo" class="tab-content">
+    <div class="content">
+      <div class="cards-grid" id="cards-resumo"></div>
+      <div class="tabela-wrap">
+        <div class="tabela-container">
+          <div id="resumo-corpo"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL NOVA/EDITAR RESERVA -->
+<div class="modal-overlay" id="modal-overlay" onclick="fecharModalFora(event)">
+  <div class="modal">
+    <div class="modal-titulo" id="modal-titulo">Nova Reserva</div>
+    <div class="form-grid">
+      <div class="form-group full">
+        <label>Empresa / Agência</label>
+        <input type="text" id="f-empresa" list="lista-empresas" placeholder="Nome da empresa..." />
+        <datalist id="lista-empresas"></datalist>
+      </div>
+      <div class="form-group">
+        <label>Data</label>
+        <input type="date" id="f-data" />
+      </div>
+      <div class="form-group">
+        <label>Data Pagamento</label>
+        <input type="date" id="f-datapg" />
+      </div>
+      <div class="form-group">
+        <label>Tipo de Acomodação</label>
+        <select id="f-tipo">
+          <option value="">Selecione...</option>
+          <option>CASAL</option><option>DUPLO</option><option>TRIPLO</option>
+          <option>INDIVIDUAL</option><option>QUADRUPLO</option><option>CAFÉ DA MANHA</option>
+          <option>TRIPLO FAMILIAR</option><option>SINGLE</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Quantidade</label>
+        <input type="number" id="f-qtd" min="1" value="1" />
+      </div>
+      <div class="form-group">
+        <label>Valor Unitário (R$)</label>
+        <input type="number" id="f-valor" min="0" step="0.01" placeholder="0,00" />
+      </div>
+      <div class="form-group full">
+        <label>Observações</label>
+        <input type="text" id="f-obs" placeholder="Observações opcionais..." />
+      </div>
+    </div>
+    <div class="modal-acoes">
+      <button class="btn-cancelar" onclick="fecharModal()">Cancelar</button>
+      <button class="btn-salvar" id="btn-salvar" onclick="salvarReserva()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ── CONFIG ──
+let CONFIG = { clientId: '', sheetId: '' };
+let tokenClient = null;
+let accessToken = null;
+let todasReservas = [];
+let reservasFiltradas = [];
+let editandoLinha = null; // { sheet, row }
+
+const EMPRESAS = ['NATIVOS','ELETRIZANTE','VEREDAS','TRILHAS TOUR','JALAPAO PARADISE','I9 JALAPAO','ANDORINHAS','MR','OFF ROAD','AGRESTE','PARK DO SOL','BOOKING','CONEXAO CERRADO','NXT TRAVEL','RADICAL TURISMO','TOCANTINS ADENTRO','JALAPAO BRASIL'];
+
+// ── INIT ──
+window.onload = () => {
+  const saved = localStorage.getItem('pousada_config');
+  if (saved) {
+    CONFIG = JSON.parse(saved);
+    document.getElementById('input-clientid').value = CONFIG.clientId;
+    document.getElementById('input-sheetid').value = CONFIG.sheetId;
+  }
+  carregarGoogleAPI();
+  preencherDatalist();
+};
+
+function preencherDatalist() {
+  const dl = document.getElementById('lista-empresas');
+  EMPRESAS.forEach(e => {
+    const opt = document.createElement('option');
+    opt.value = e;
+    dl.appendChild(opt);
+  });
+}
+
+function carregarGoogleAPI() {
+  const s = document.createElement('script');
+  s.src = 'https://accounts.google.com/gsi/client';
+  s.async = true;
+  document.head.appendChild(s);
+}
+
+// ── AUTH ──
+function iniciarAuth() {
+  CONFIG.clientId = document.getElementById('input-clientid').value.trim();
+  CONFIG.sheetId = document.getElementById('input-sheetid').value.trim();
+  const err = document.getElementById('setup-error');
+
+  if (!CONFIG.clientId || !CONFIG.sheetId) {
+    err.textContent = 'Preencha o Client ID e o ID da planilha.';
+    err.style.display = 'block';
+    return;
+  }
+
+  err.style.display = 'none';
+  localStorage.setItem('pousada_config', JSON.stringify(CONFIG));
+
+  if (!window.google) {
+    err.textContent = 'API do Google ainda não carregou. Aguarde alguns segundos e tente novamente.';
+    err.style.display = 'block';
+    return;
+  }
+
+  tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: CONFIG.clientId,
+    scope: 'https://www.googleapis.com/auth/spreadsheets',
+    callback: (resp) => {
+      if (resp.error) { mostrarErroSetup(resp.error); return; }
+      accessToken = resp.access_token;
+      entrarNoApp();
+    }
+  });
+
+  tokenClient.requestAccessToken();
+}
+
+function entrarNoApp() {
+  document.getElementById('setup-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  carregarReservas();
+  carregarDespesas();
+  carregarResumo();
+}
+
+function sair() {
+  accessToken = null;
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('setup-screen').style.display = 'flex';
+}
+
+function mostrarErroSetup(msg) {
+  const err = document.getElementById('setup-error');
+  err.textContent = 'Erro ao autenticar: ' + msg;
+  err.style.display = 'block';
+}
+
+// ── SHEETS API ──
+async function sheetsGet(range) {
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.sheetId}/values/${encodeURIComponent(range)}`;
+  const res = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+async function sheetsAppend(range, values) {
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.sheetId}/values/${encodeURIComponent(range)}:append?valueInputOption=USER_ENTERED`;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ values })
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+async function sheetsUpdate(range, values) {
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.sheetId}/values/${encodeURIComponent(range)}?valueInputOption=USER_ENTERED`;
+  const res = await fetch(url, {
+    method: 'PUT',
+    headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ values })
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+async function sheetsClear(range) {
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.sheetId}/values/${encodeURIComponent(range)}:clear`;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${accessToken}` }
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+// ── RESERVAS ──
+const MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+async function carregarReservas() {
+  const corpo = document.getElementById('tabela-corpo');
+  corpo.innerHTML = '<div class="loading"><div class="spinner"></div>Carregando reservas...</div>';
+
+  try {
+    todasReservas = [];
+
+    for (let mi = 0; mi < 12; mi++) {
+      const mes = MESES[mi];
+      let sheetName = `OCUPAÇÃO DIÁRIA ${mes.toUpperCase()}`;
+      // Try to get data
+      try {
+        const data = await sheetsGet(`${sheetName}!A:G`);
+        const rows = data.values || [];
+        rows.forEach((row, idx) => {
+          if (idx < 2) return; // skip headers
+          if (!row[0] || row[0] === 'EMPRESA') return;
+          if (row[0].toString().startsWith('VALOR TOTAL') || row[0].toString().startsWith('RESULTADO')) return;
+          todasReservas.push({
+            id: `${mes}-${idx}`,
+            mes,
+            sheetRow: idx + 1,
+            sheet: sheetName,
+            empresa: (row[0] || '').toString().trim(),
+            data: row[1] || '',
+            tipo: (row[2] || '').toString().trim().toUpperCase(),
+            qtd: row[3] || '',
+            valor: row[4] || '',
+            obs: row[5] || '',
+            dataPg: row[6] || ''
+          });
+        });
+      } catch(e) {
+        // Aba pode não existir
+      }
+    }
+
+    // Also load RESERVAS POR EMPRESAS
+    try {
+      const data = await sheetsGet(`RESERVAS POR EMPRESAS!A:G`);
+      const rows = data.values || [];
+      rows.forEach((row, idx) => {
+        if (idx < 2) return;
+        if (!row[0] || row[0] === 'EMPRESA') return;
+        if (row[0].toString().startsWith('VALOR TOTAL') || row[0].toString().startsWith('CONTROLE') || row[0].toString().startsWith('RESULTADO')) return;
+        const dataVal = row[1] || '';
+        const mes = dataVal ? getMesFromDate(dataVal) : 'Janeiro';
+        todasReservas.push({
+          id: `res-${idx}`,
+          mes,
+          sheetRow: idx + 1,
+          sheet: 'RESERVAS POR EMPRESAS',
+          empresa: (row[0] || '').toString().trim(),
+          data: dataVal,
+          tipo: (row[2] || '').toString().trim().toUpperCase(),
+          qtd: row[3] || '',
+          valor: row[4] || '',
+          obs: row[5] || '',
+          dataPg: row[6] || ''
+        });
+      });
+    } catch(e) {}
+
+    atualizarCards();
+    filtrar();
+  } catch (e) {
+    corpo.innerHTML = `<div class="empty"><div class="empty-icon">⚠️</div>Erro ao carregar: ${e.message}</div>`;
+  }
+}
+
+function getMesFromDate(val) {
+  if (!val) return 'Janeiro';
+  const d = typeof val === 'number' ? excelDateToJS(val) : new Date(val);
+  if (isNaN(d)) return 'Janeiro';
+  return MESES[d.getMonth()];
+}
+
+function excelDateToJS(serial) {
+  const epoch = new Date(1899, 11, 30);
+  return new Date(epoch.getTime() + serial * 86400000);
+}
+
+function formatDate(val) {
+  if (!val) return '—';
+  if (typeof val === 'number') {
+    const d = excelDateToJS(val);
+    return d.toLocaleDateString('pt-BR');
+  }
+  try {
+    const d = new Date(val);
+    if (!isNaN(d)) return d.toLocaleDateString('pt-BR');
+  } catch(e) {}
+  return val.toString();
+}
+
+function formatValor(v) {
+  if (!v) return '—';
+  const n = parseFloat(v);
+  if (isNaN(n)) return v;
+  return 'R$ ' + n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function atualizarCards() {
+  const total = todasReservas.length;
+  const valorTotal = todasReservas.reduce((s,r) => s + (parseFloat(r.valor) || 0), 0);
+  const empresas = new Set(todasReservas.map(r => r.empresa)).size;
+
+  document.getElementById('cards-reservas').innerHTML = `
+    <div class="card-stat">
+      <div class="card-label">Total de Reservas</div>
+      <div class="card-valor">${total}</div>
+      <div class="card-sub">em todos os meses</div>
+    </div>
+    <div class="card-stat destaque">
+      <div class="card-label">Valor Total</div>
+      <div class="card-valor">${formatValor(valorTotal)}</div>
+      <div class="card-sub">soma de hospedagens</div>
+    </div>
+    <div class="card-stat info">
+      <div class="card-label">Empresas</div>
+      <div class="card-valor">${empresas}</div>
+      <div class="card-sub">agências diferentes</div>
+    </div>
+  `;
+}
+
+function filtrar() {
+  const busca = document.getElementById('busca').value.toLowerCase();
+  const mes = document.getElementById('filtro-mes').value;
+  const tipo = document.getElementById('filtro-tipo').value.toUpperCase();
+
+  reservasFiltradas = todasReservas.filter(r => {
+    if (busca && !r.empresa.toLowerCase().includes(busca)) return false;
+    if (mes && r.mes !== mes) return false;
+    if (tipo && r.tipo !== tipo) return false;
+    return true;
+  });
+
+  renderTabela();
+}
+
+function getBadgeTipo(tipo) {
+  const t = tipo.toLowerCase();
+  let cls = '';
+  if (t.includes('casal')) cls = 'casal';
+  else if (t.includes('duplo')) cls = 'duplo';
+  else if (t.includes('triplo')) cls = 'triplo';
+  else if (t.includes('individual') || t.includes('single')) cls = 'individual';
+  else if (t.includes('quadruplo')) cls = 'quadruplo';
+  return `<span class="badge-tipo ${cls}">${tipo || '—'}</span>`;
+}
+
+function renderTabela() {
+  const corpo = document.getElementById('tabela-corpo');
+  const total = reservasFiltradas.reduce((s,r) => s + (parseFloat(r.valor) || 0), 0);
+
+  document.getElementById('info-registros').textContent = `${reservasFiltradas.length} registro(s) encontrado(s)`;
+  document.getElementById('info-total').textContent = reservasFiltradas.length ? `Total: ${formatValor(total)}` : '';
+
+  if (!reservasFiltradas.length) {
+    corpo.innerHTML = '<div class="empty"><div class="empty-icon">🌿</div>Nenhuma reserva encontrada</div>';
+    return;
+  }
+
+  let html = `<table><thead><tr>
+    <th>Empresa</th><th>Mês</th><th>Data</th><th>Acomodação</th>
+    <th>Qtd</th><th>Valor Unit.</th><th>Data Pag.</th><th>Obs.</th><th>Ações</th>
+  </tr></thead><tbody>`;
+
+  reservasFiltradas.forEach((r, i) => {
+    html += `<tr>
+      <td class="td-empresa">${r.empresa || '—'}</td>
+      <td>${r.mes}</td>
+      <td>${formatDate(r.data)}</td>
+      <td>${getBadgeTipo(r.tipo)}</td>
+      <td>${r.qtd || '—'}</td>
+      <td class="td-valor">${formatValor(r.valor)}</td>
+      <td>${formatDate(r.dataPg)}</td>
+      <td>${r.obs || '—'}</td>
+      <td><div class="td-acoes">
+        <button class="btn-editar" title="Editar" onclick="editarReserva(${i})">✏️</button>
+        <button class="btn-deletar" title="Excluir" onclick="excluirReserva(${i})">🗑️</button>
+      </div></td>
+    </tr>`;
+  });
+
+  html += '</tbody></table>';
+  corpo.innerHTML = html;
+}
+
+// ── MODAL ──
+function abrirModal(reserva = null, idx = null) {
+  editandoLinha = reserva ? { sheet: reserva.sheet, row: reserva.sheetRow } : null;
+  document.getElementById('modal-titulo').textContent = reserva ? 'Editar Reserva' : 'Nova Reserva';
+
+  // Preenche campos
+  document.getElementById('f-empresa').value = reserva?.empresa || '';
+  document.getElementById('f-tipo').value = reserva?.tipo || '';
+  document.getElementById('f-qtd').value = reserva?.qtd || 1;
+  document.getElementById('f-valor').value = reserva?.valor || '';
+  document.getElementById('f-obs').value = reserva?.obs || '';
+
+  // Datas
+  const d = reserva?.data;
+  if (d && typeof d === 'number') {
+    document.getElementById('f-data').value = excelDateToJS(d).toISOString().split('T')[0];
+  } else {
+    document.getElementById('f-data').value = d || new Date().toISOString().split('T')[0];
+  }
+
+  const dp = reserva?.dataPg;
+  if (dp && typeof dp === 'number') {
+    document.getElementById('f-datapg').value = excelDateToJS(dp).toISOString().split('T')[0];
+  } else {
+    document.getElementById('f-datapg').value = dp || '';
+  }
+
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function fecharModal() {
+  document.getElementById('modal-overlay').classList.remove('open');
+  editandoLinha = null;
+}
+
+function fecharModalFora(e) {
+  if (e.target === document.getElementById('modal-overlay')) fecharModal();
+}
+
+function editarReserva(idx) {
+  abrirModal(reservasFiltradas[idx], idx);
+}
+
+async function excluirReserva(idx) {
+  const r = reservasFiltradas[idx];
+  if (!confirm(`Excluir reserva de ${r.empresa}?`)) return;
+
+  try {
+    await sheetsClear(`${r.sheet}!A${r.sheetRow}:G${r.sheetRow}`);
+    toast('Reserva excluída!');
+    carregarReservas();
+  } catch(e) {
+    toast('Erro ao excluir: ' + e.message, true);
+  }
+}
+
+async function salvarReserva() {
+  const empresa = document.getElementById('f-empresa').value.trim();
+  const data = document.getElementById('f-data').value;
+  const tipo = document.getElementById('f-tipo').value;
+  const qtd = document.getElementById('f-qtd').value;
+  const valor = document.getElementById('f-valor').value;
+  const obs = document.getElementById('f-obs').value;
+  const dataPg = document.getElementById('f-datapg').value;
+
+  if (!empresa || !data || !tipo) {
+    toast('Preencha empresa, data e tipo.', true);
+    return;
+  }
+
+  const btn = document.getElementById('btn-salvar');
+  btn.disabled = true;
+  btn.textContent = 'Salvando...';
+
+  const row = [empresa, data, tipo, qtd, valor, obs, dataPg];
+
+  try {
+    if (editandoLinha) {
+      await sheetsUpdate(`${editandoLinha.sheet}!A${editandoLinha.row}:G${editandoLinha.row}`, [row]);
+      toast('Reserva atualizada!');
+    } else {
+      // Determina a aba correta pelo mês
+      const mes = MESES[new Date(data).getMonth()];
+      let sheetAlvo = `OCUPAÇÃO DIÁRIA ${mes.toUpperCase()}`;
+      // Tenta append; se aba não existir, usa RESERVAS POR EMPRESAS
+      try {
+        await sheetsAppend(`${sheetAlvo}!A:G`, [row]);
+      } catch(e2) {
+        await sheetsAppend(`RESERVAS POR EMPRESAS!A:G`, [row]);
+      }
+      toast('Reserva adicionada!');
+    }
+
+    fecharModal();
+    carregarReservas();
+  } catch(e) {
+    toast('Erro: ' + e.message, true);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Salvar';
+  }
+}
+
+// ── DESPESAS ──
+async function carregarDespesas() {
+  try {
+    const data = await sheetsGet(`DESPESAS MENSAIS !A:Z`);
+    const rows = data.values || [];
+    renderDespesas(rows);
+  } catch(e) {
+    document.getElementById('despesas-corpo').innerHTML =
+      `<div class="empty"><div class="empty-icon">⚠️</div>Erro: ${e.message}</div>`;
+  }
+}
+
+function renderDespesas(rows) {
+  if (!rows.length) {
+    document.getElementById('despesas-corpo').innerHTML = '<div class="empty">Sem dados de despesas</div>';
+    return;
+  }
+
+  // Row 0 = headers (DESPESAS FIXAS, JANEIRO, FEVEREIRO...)
+  const headers = rows[0] || [];
+  const mesesCols = headers.slice(1).filter(h => h && MESES.map(m=>m.toUpperCase()).includes(h.toString().toUpperCase().trim()));
+  const mesesIdx = mesesCols.map(m => headers.indexOf(m));
+
+  let html = '<div class="despesas-grid">';
+
+  mesesIdx.forEach((colIdx, mi) => {
+    const mesNome = mesesCols[mi];
+    let itens = [];
+    let total = 0;
+
+    rows.slice(1).forEach(row => {
+      const nome = row[0];
+      const val = parseFloat((row[colIdx] || '').toString().replace(',','.'));
+      if (nome && val && !isNaN(val) && !nome.toString().startsWith('RESULTADO')) {
+        itens.push({ nome, val });
+        total += val;
+      }
+    });
+
+    if (!itens.length) return;
+
+    html += `<div class="despesa-card">
+      <div class="despesa-mes">${mesNome} <span class="despesa-total">${formatValor(total)}</span></div>`;
+
+    itens.forEach(item => {
+      html += `<div class="despesa-item">
+        <span class="despesa-nome">${item.nome}</span>
+        <span class="despesa-valor">${formatValor(item.val)}</span>
+      </div>`;
+    });
+
+    html += '</div>';
+  });
+
+  html += '</div>';
+  document.getElementById('despesas-corpo').innerHTML = html;
+}
+
+// ── RESUMO ──
+async function carregarResumo() {
+  try {
+    const data = await sheetsGet(`OCUPAÇÃO MES GERAL!A:D`);
+    const rows = data.values || [];
+    renderResumo(rows);
+  } catch(e) {
+    document.getElementById('resumo-corpo').innerHTML =
+      `<div class="empty"><div class="empty-icon">⚠️</div>Erro: ${e.message}</div>`;
+  }
+}
+
+function renderResumo(rows) {
+  let totalHosp = 0, totalValor = 0, mesesAtivos = 0;
+  const dadosMeses = [];
+
+  rows.forEach(row => {
+    if (!row[0] || row[0] === 'RESULTADO POUSADA ECOOGICA') return;
+    const mes = row[0].toString().trim();
+    if (!MESES.map(m=>m.toUpperCase()).includes(mes.toUpperCase())) return;
+    const qtd = parseInt(row[1]) || 0;
+    const ocup = parseFloat(row[2]) || 0;
+    const valor = parseFloat(row[3]) || 0;
+    if (qtd > 0) { totalHosp += qtd; totalValor += valor; mesesAtivos++; }
+    dadosMeses.push({ mes, qtd, ocup, valor });
+  });
+
+  document.getElementById('cards-resumo').innerHTML = `
+    <div class="card-stat">
+      <div class="card-label">Hospedagens Anuais</div>
+      <div class="card-valor">${totalHosp.toLocaleString('pt-BR')}</div>
+      <div class="card-sub">${mesesAtivos} meses com dados</div>
+    </div>
+    <div class="card-stat destaque">
+      <div class="card-label">Receita Bruta Anual</div>
+      <div class="card-valor">${formatValor(totalValor)}</div>
+      <div class="card-sub">total acumulado</div>
+    </div>
+    <div class="card-stat info">
+      <div class="card-label">Média Mensal</div>
+      <div class="card-valor">${mesesAtivos ? formatValor(totalValor/mesesAtivos) : '—'}</div>
+      <div class="card-sub">por mês ativo</div>
+    </div>
+  `;
+
+  let html = `<table><thead><tr>
+    <th>Mês</th><th>Hospedagens</th><th>Ocupação %</th><th>Valor Bruto</th>
+  </tr></thead><tbody>`;
+
+  dadosMeses.forEach(r => {
+    const ocupPct = (r.ocup * 100).toFixed(1) + '%';
+    const barWidth = Math.round(r.ocup * 100);
+    html += `<tr>
+      <td style="font-weight:600">${r.mes.charAt(0)+r.mes.slice(1).toLowerCase()}</td>
+      <td>${r.qtd || '—'}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="flex:1;background:var(--areia-escura);border-radius:4px;height:6px">
+            <div style="width:${barWidth}%;background:var(--verde-claro);height:6px;border-radius:4px"></div>
+          </div>
+          <span style="font-size:12px;color:var(--texto-suave);min-width:38px">${ocupPct}</span>
+        </div>
+      </td>
+      <td class="td-valor">${formatValor(r.valor)}</td>
+    </tr>`;
+  });
+
+  html += '</tbody></table>';
+  document.getElementById('resumo-corpo').innerHTML = html;
+}
+
+// ── TABS ──
+function mudarTab(nome, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tab-' + nome).classList.add('active');
+}
+
+// ── TOAST ──
+function toast(msg, erro = false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'show' + (erro ? ' erro' : '');
+  setTimeout(() => t.className = '', 3000);
+}
+</script>
+</body>
+</html>
