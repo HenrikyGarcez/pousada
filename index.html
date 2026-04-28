@@ -1,641 +1,1418 @@
-
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pousada Ecológica — Gestão de Reservas</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: var(--font-sans); }
-.tabs { display: flex; gap: 4px; margin-bottom: 1.5rem; border-bottom: 0.5px solid var(--color-border-tertiary); padding-bottom: 0; }
-.tab { padding: 8px 16px; font-size: 14px; cursor: pointer; border: none; background: none; color: var(--color-text-secondary); border-bottom: 2px solid transparent; margin-bottom: -1px; }
-.tab.active { color: var(--color-text-primary); border-bottom: 2px solid var(--color-text-primary); font-weight: 500; }
-.card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem; }
-.metric { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 1rem; }
-.metric-label { font-size: 12px; color: var(--color-text-secondary); margin-bottom: 4px; }
-.metric-value { font-size: 22px; font-weight: 500; }
-.grid4 { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 12px; margin-bottom: 1.5rem; }
-.grid2 { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px; margin-bottom: 1.5rem; }
-label { font-size: 13px; color: var(--color-text-secondary); display: block; margin-bottom: 4px; }
-select, input[type=text], input[type=number], input[type=date] { width: 100%; padding: 8px 10px; font-size: 14px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); background: var(--color-background-primary); color: var(--color-text-primary); }
-.form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 12px; }
-.btn { padding: 8px 16px; font-size: 14px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); cursor: pointer; background: var(--color-background-primary); color: var(--color-text-primary); }
-.btn-primary { background: var(--color-text-primary); color: var(--color-background-primary); border-color: var(--color-text-primary); }
-.btn-sm { padding: 4px 10px; font-size: 12px; }
-.badge { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 11px; font-weight: 500; }
-.badge-pago { background: #EAF3DE; color: #3B6D11; }
-.badge-devendo { background: #FCEBEB; color: #A32D2D; }
-.badge-parcial { background: #FAEEDA; color: #854F0B; }
-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-th { font-size: 11px; color: var(--color-text-secondary); font-weight: 500; text-align: left; padding: 6px 8px; border-bottom: 0.5px solid var(--color-border-tertiary); }
-td { padding: 8px 8px; border-bottom: 0.5px solid var(--color-border-tertiary); color: var(--color-text-primary); }
-tr:last-child td { border-bottom: none; }
-.devedor-bar { height: 6px; border-radius: 3px; background: #F0959580; margin-top: 4px; }
-.devedor-fill { height: 100%; border-radius: 3px; background: #E24B4A; }
-.section-title { font-size: 13px; font-weight: 500; color: var(--color-text-secondary); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.05em; }
-.alert { padding: 10px 14px; border-radius: var(--border-radius-md); font-size: 13px; margin-bottom: 12px; }
-.alert-red { background: #FCEBEB; color: #A32D2D; border: 0.5px solid #F7C1C1; }
-.alert-green { background: #EAF3DE; color: #3B6D11; border: 0.5px solid #C0DD97; }
-.section { display: none; }
-.section.active { display: block; }
-.empresa-card { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 0.5px solid var(--color-border-tertiary); }
-.empresa-card:last-child { border-bottom: none; }
+  :root {
+    --verde: #2d5a27;
+    --verde-claro: #4a8c3f;
+    --verde-musgo: #6b8f5e;
+    --areia: #f5efe6;
+    --areia-escura: #e8ddd0;
+    --terra: #c4956a;
+    --terra-escura: #8b5e3c;
+    --texto: #1a2e16;
+    --texto-suave: #5a6b54;
+    --branco: #fdfaf7;
+    --sombra: rgba(45,90,39,0.12);
+    --borda: #d4c9bb;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--areia);
+    color: var(--texto);
+    min-height: 100vh;
+  }
+
+  /* ── SETUP SCREEN ── */
+  #setup-screen {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #1a2e16 0%, #2d5a27 50%, #4a8c3f 100%);
+    padding: 24px;
+  }
+
+  .setup-card {
+    background: var(--branco);
+    border-radius: 20px;
+    padding: 48px 40px;
+    max-width: 500px;
+    width: 100%;
+    box-shadow: 0 32px 80px rgba(0,0,0,0.3);
+  }
+
+  .setup-logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    color: var(--verde);
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .setup-sub {
+    font-size: 13px;
+    color: var(--texto-suave);
+    margin-bottom: 36px;
+    letter-spacing: 0.5px;
+  }
+
+  .setup-step {
+    display: flex;
+    gap: 14px;
+    margin-bottom: 24px;
+    align-items: flex-start;
+  }
+
+  .step-num {
+    background: var(--verde);
+    color: white;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    font-size: 12px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .step-body label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--verde);
+    margin-bottom: 6px;
+    letter-spacing: 0.3px;
+  }
+
+  .step-body p {
+    font-size: 12px;
+    color: var(--texto-suave);
+    margin-bottom: 8px;
+    line-height: 1.5;
+  }
+
+  .step-body a {
+    color: var(--verde-claro);
+    font-size: 12px;
+  }
+
+  .setup-input {
+    width: 100%;
+    padding: 11px 14px;
+    border: 1.5px solid var(--borda);
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    color: var(--texto);
+    background: var(--areia);
+    transition: border-color 0.2s;
+    outline: none;
+  }
+
+  .setup-input:focus { border-color: var(--verde-claro); background: white; }
+
+  .btn-conectar {
+    width: 100%;
+    padding: 14px;
+    background: var(--verde);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: background 0.2s, transform 0.1s;
+    letter-spacing: 0.3px;
+  }
+
+  .btn-conectar:hover { background: var(--verde-claro); }
+  .btn-conectar:active { transform: scale(0.99); }
+
+  .setup-error {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #b91c1c;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    margin-top: 12px;
+    display: none;
+  }
+
+  /* ── MAIN APP ── */
+  #app { display: none; }
+
+  header {
+    background: linear-gradient(135deg, var(--verde) 0%, var(--verde-claro) 100%);
+    padding: 0 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+    box-shadow: 0 2px 20px var(--sombra);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .header-logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    color: white;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+
+  .header-logo span {
+    font-size: 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    opacity: 0.8;
+    display: block;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .badge-sync {
+    font-size: 12px;
+    color: rgba(255,255,255,0.75);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .dot-sync {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #4ade80;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%,100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .btn-sair {
+    background: rgba(255,255,255,0.15);
+    color: white;
+    border: 1px solid rgba(255,255,255,0.25);
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: background 0.2s;
+  }
+  .btn-sair:hover { background: rgba(255,255,255,0.25); }
+
+  /* ── TABS ── */
+  .tabs {
+    background: white;
+    border-bottom: 1px solid var(--borda);
+    padding: 0 32px;
+    display: flex;
+    gap: 4px;
+  }
+
+  .tab {
+    padding: 16px 20px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--texto-suave);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .tab:hover { color: var(--verde); }
+  .tab.active { color: var(--verde); border-bottom-color: var(--verde); font-weight: 600; }
+
+  /* ── CONTENT ── */
+  .content { padding: 28px 32px; max-width: 1400px; margin: 0 auto; }
+
+  /* ── CARDS RESUMO ── */
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+
+  .card-stat {
+    background: white;
+    border-radius: 14px;
+    padding: 20px 22px;
+    box-shadow: 0 2px 12px var(--sombra);
+    border-left: 4px solid var(--verde-musgo);
+  }
+
+  .card-stat.destaque { border-left-color: var(--terra); }
+  .card-stat.info { border-left-color: var(--verde-claro); }
+
+  .card-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--texto-suave);
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+  .card-valor {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--verde);
+    line-height: 1;
+  }
+
+  .card-stat.destaque .card-valor { color: var(--terra-escura); }
+
+  .card-sub {
+    font-size: 12px;
+    color: var(--texto-suave);
+    margin-top: 6px;
+  }
+
+  /* ── TOOLBAR ── */
+  .toolbar {
+    background: white;
+    border-radius: 14px;
+    padding: 16px 20px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 12px var(--sombra);
+  }
+
+  .toolbar-search {
+    flex: 1;
+    min-width: 200px;
+    padding: 9px 14px 9px 36px;
+    border: 1.5px solid var(--borda);
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    color: var(--texto);
+    background: var(--areia) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%235a6b54' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E") no-repeat 12px center;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .toolbar-search:focus { border-color: var(--verde-claro); background-color: white; }
+
+  .toolbar-select {
+    padding: 9px 14px;
+    border: 1.5px solid var(--borda);
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    color: var(--texto);
+    background: var(--areia);
+    outline: none;
+    cursor: pointer;
+    transition: border-color 0.2s;
+    min-width: 140px;
+  }
+
+  .toolbar-select:focus { border-color: var(--verde-claro); }
+
+  .btn-novo {
+    padding: 9px 18px;
+    background: var(--verde);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .btn-novo:hover { background: var(--verde-claro); }
+
+  /* ── TABELA ── */
+  .tabela-wrap {
+    background: white;
+    border-radius: 14px;
+    box-shadow: 0 2px 12px var(--sombra);
+    overflow: hidden;
+  }
+
+  .tabela-container { overflow-x: auto; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  thead th {
+    background: var(--verde);
+    color: white;
+    padding: 12px 14px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  thead th:first-child { border-radius: 0; }
+
+  tbody tr {
+    border-bottom: 1px solid var(--areia-escura);
+    transition: background 0.15s;
+  }
+
+  tbody tr:hover { background: var(--areia); }
+  tbody tr:last-child { border-bottom: none; }
+
+  tbody td {
+    padding: 11px 14px;
+    color: var(--texto);
+    vertical-align: middle;
+  }
+
+  .td-empresa {
+    font-weight: 600;
+    color: var(--verde);
+  }
+
+  .badge-tipo {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    background: var(--areia-escura);
+    color: var(--texto-suave);
+  }
+
+  .badge-tipo.casal { background: #dcfce7; color: #166534; }
+  .badge-tipo.duplo { background: #dbeafe; color: #1e40af; }
+  .badge-tipo.triplo { background: #fef9c3; color: #854d0e; }
+  .badge-tipo.individual { background: #f3e8ff; color: #6b21a8; }
+  .badge-tipo.quadruplo { background: #ffe4e6; color: #9f1239; }
+
+  .td-valor {
+    font-weight: 600;
+    color: var(--terra-escura);
+    font-family: 'Playfair Display', serif;
+  }
+
+  .td-acoes {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .btn-editar, .btn-deletar {
+    width: 30px;
+    height: 30px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+  }
+
+  .btn-editar { background: #f0fdf4; color: var(--verde); }
+  .btn-editar:hover { background: var(--verde); color: white; }
+  .btn-deletar { background: #fff1f2; color: #e11d48; }
+  .btn-deletar:hover { background: #e11d48; color: white; }
+
+  .tabela-footer {
+    padding: 14px 20px;
+    background: var(--areia);
+    font-size: 12px;
+    color: var(--texto-suave);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-top: 1px solid var(--borda);
+  }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(26,46,22,0.6);
+    backdrop-filter: blur(4px);
+    z-index: 999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--branco);
+    border-radius: 18px;
+    padding: 36px;
+    width: 100%;
+    max-width: 540px;
+    box-shadow: 0 40px 100px rgba(0,0,0,0.3);
+    animation: slideUp 0.25s ease;
+  }
+
+  @keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  .modal-titulo {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    color: var(--verde);
+    font-weight: 700;
+    margin-bottom: 24px;
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .form-grid .full { grid-column: 1 / -1; }
+
+  .form-group label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--texto-suave);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+  }
+
+  .form-group input, .form-group select {
+    width: 100%;
+    padding: 10px 13px;
+    border: 1.5px solid var(--borda);
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    color: var(--texto);
+    background: var(--areia);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .form-group input:focus, .form-group select:focus {
+    border-color: var(--verde-claro);
+    background: white;
+  }
+
+  .modal-acoes {
+    display: flex;
+    gap: 10px;
+    margin-top: 24px;
+    justify-content: flex-end;
+  }
+
+  .btn-cancelar {
+    padding: 10px 20px;
+    background: var(--areia-escura);
+    color: var(--texto-suave);
+    border: none;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .btn-cancelar:hover { background: var(--borda); }
+
+  .btn-salvar {
+    padding: 10px 24px;
+    background: var(--verde);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .btn-salvar:hover { background: var(--verde-claro); }
+  .btn-salvar:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* ── LOADING ── */
+  .loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    flex-direction: column;
+    gap: 14px;
+    color: var(--texto-suave);
+    font-size: 14px;
+  }
+
+  .spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid var(--areia-escura);
+    border-top-color: var(--verde);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--texto-suave);
+    font-size: 14px;
+  }
+
+  .empty-icon { font-size: 40px; margin-bottom: 12px; }
+
+  /* ── ABA DESPESAS ── */
+  .despesas-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+  }
+
+  .despesa-card {
+    background: white;
+    border-radius: 14px;
+    padding: 22px;
+    box-shadow: 0 2px 12px var(--sombra);
+  }
+
+  .despesa-mes {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    color: var(--verde);
+    font-weight: 700;
+    margin-bottom: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .despesa-total {
+    font-size: 20px;
+    color: var(--terra-escura);
+  }
+
+  .despesa-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 7px 0;
+    border-bottom: 1px solid var(--areia-escura);
+    font-size: 13px;
+  }
+
+  .despesa-item:last-child { border-bottom: none; }
+  .despesa-nome { color: var(--texto-suave); }
+  .despesa-valor { font-weight: 600; color: var(--terra-escura); }
+
+  /* ── TOAST ── */
+  #toast {
+    position: fixed;
+    bottom: 28px;
+    right: 28px;
+    background: var(--verde);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 500;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+    z-index: 9999;
+    transform: translateY(80px);
+    opacity: 0;
+    transition: all 0.3s ease;
+  }
+
+  #toast.show { transform: translateY(0); opacity: 1; }
+  #toast.erro { background: #e11d48; }
+
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  @media (max-width: 640px) {
+    header { padding: 0 16px; }
+    .tabs { padding: 0 16px; overflow-x: auto; }
+    .content { padding: 16px; }
+    .form-grid { grid-template-columns: 1fr; }
+  }
 </style>
+</head>
+<body>
 
-<h2 class="sr-only">Painel de controle de reservas — Pousada Ecológica</h2>
+<!-- TELA DE CONFIGURAÇÃO -->
+<div id="setup-screen">
+  <div class="setup-card">
+    <div class="setup-logo">🌿 Pousada Ecológica</div>
+    <div class="setup-sub">Conecte sua planilha do Google Sheets</div>
 
-<div style="padding: 1rem 0;">
-<div class="tabs">
-  <button class="tab active" onclick="showTab('dashboard')">Painel</button>
-  <button class="tab" onclick="showTab('nova')">Nova Reserva</button>
-  <button class="tab" onclick="showTab('devedores')">Quem Me Deve</button>
-  <button class="tab" onclick="showTab('historico')">Histórico</button>
+    <div class="setup-step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <label>Google Client ID</label>
+        <p>Crie em <a href="https://console.cloud.google.com/apis/credentials" target="_blank">console.cloud.google.com</a> → Criar credenciais → ID do cliente OAuth 2.0 → Aplicativo da Web. Adicione <b>este arquivo</b> como URI autorizado.</p>
+        <input class="setup-input" id="input-clientid" type="text" placeholder="12345.apps.googleusercontent.com" />
+      </div>
+    </div>
+
+    <div class="setup-step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <label>ID da Planilha</label>
+        <p>É o código na URL da sua planilha: docs.google.com/spreadsheets/d/<b>[ID AQUI]</b>/edit</p>
+        <input class="setup-input" id="input-sheetid" type="text" placeholder="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms" />
+      </div>
+    </div>
+
+    <button class="btn-conectar" onclick="iniciarAuth()">🔑 Conectar ao Google Sheets</button>
+    <div class="setup-error" id="setup-error"></div>
+
+    <p style="font-size:11px;color:#999;margin-top:20px;text-align:center">Seus dados ficam sempre na sua planilha. Nada é armazenado aqui.</p>
+  </div>
 </div>
 
-<div id="tab-dashboard" class="section active">
-  <div class="grid4" id="metrics"></div>
-  <div class="grid2">
-    <div class="card">
-      <p class="section-title">situação financeira</p>
-      <div id="situacao-fin"></div>
+<!-- APP PRINCIPAL -->
+<div id="app">
+  <header>
+    <div class="header-logo">
+      🌿 Pousada Ecológica
+      <span>Gestão de Reservas</span>
     </div>
-    <div class="card">
-      <p class="section-title">top empresas devedoras</p>
-      <div id="top-devedores"></div>
+    <div class="header-actions">
+      <div class="badge-sync">
+        <div class="dot-sync"></div>
+        Conectado
+      </div>
+      <button class="btn-sair" onclick="sair()">Sair</button>
+    </div>
+  </header>
+
+  <div class="tabs">
+    <div class="tab active" onclick="mudarTab('reservas', this)">Hospedagens</div>
+    <div class="tab" onclick="mudarTab('despesas', this)">Despesas</div>
+    <div class="tab" onclick="mudarTab('resumo', this)">Resumo Mensal</div>
+  </div>
+
+  <!-- ABA RESERVAS -->
+  <div id="tab-reservas" class="tab-content active">
+    <div class="content">
+      <div class="cards-grid" id="cards-reservas"></div>
+
+      <div class="toolbar">
+        <input class="toolbar-search" type="text" id="busca" placeholder="Buscar empresa..." oninput="filtrar()" />
+        <select class="toolbar-select" id="filtro-mes" onchange="filtrar()">
+          <option value="">Todos os meses</option>
+          <option>Janeiro</option><option>Fevereiro</option><option>Março</option>
+          <option>Abril</option><option>Maio</option><option>Junho</option>
+          <option>Julho</option><option>Agosto</option><option>Setembro</option>
+          <option>Outubro</option><option>Novembro</option><option>Dezembro</option>
+        </select>
+        <select class="toolbar-select" id="filtro-tipo" onchange="filtrar()">
+          <option value="">Todos os tipos</option>
+          <option>CASAL</option><option>DUPLO</option><option>TRIPLO</option>
+          <option>INDIVIDUAL</option><option>QUADRUPLO</option><option>CAFÉ DA MANHA</option>
+        </select>
+        <button class="btn-novo" onclick="abrirModal()">＋ Nova Reserva</button>
+      </div>
+
+      <div class="tabela-wrap">
+        <div class="tabela-container">
+          <div id="tabela-corpo"></div>
+        </div>
+        <div class="tabela-footer">
+          <span id="info-registros">Carregando...</span>
+          <span id="info-total"></span>
+        </div>
+      </div>
     </div>
   </div>
-  <div class="card">
-    <p class="section-title" style="margin-bottom:12px">reservas recentes</p>
-    <table>
-      <thead><tr><th>Empresa</th><th>Data</th><th>Tipo</th><th>Valor</th><th>Status</th><th></th></tr></thead>
-      <tbody id="tabela-recente"></tbody>
-    </table>
+
+  <!-- ABA DESPESAS -->
+  <div id="tab-despesas" class="tab-content">
+    <div class="content">
+      <div id="despesas-corpo"><div class="loading"><div class="spinner"></div>Carregando...</div></div>
+    </div>
+  </div>
+
+  <!-- ABA RESUMO -->
+  <div id="tab-resumo" class="tab-content">
+    <div class="content">
+      <div class="cards-grid" id="cards-resumo"></div>
+      <div class="tabela-wrap">
+        <div class="tabela-container">
+          <div id="resumo-corpo"></div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
-<div id="tab-nova" class="section">
-  <div class="card">
-    <p class="section-title" style="margin-bottom:16px">registrar nova reserva</p>
+<!-- MODAL NOVA/EDITAR RESERVA -->
+<div class="modal-overlay" id="modal-overlay" onclick="fecharModalFora(event)">
+  <div class="modal">
+    <div class="modal-titulo" id="modal-titulo">Nova Reserva</div>
     <div class="form-grid">
-      <div>
+      <div class="form-group full">
         <label>Empresa / Agência</label>
-        <input type="text" id="f-empresa" placeholder="Ex: Nativos, Veredas..." list="lista-empresas">
+        <input type="text" id="f-empresa" list="lista-empresas" placeholder="Nome da empresa..." />
         <datalist id="lista-empresas"></datalist>
       </div>
-      <div>
-        <label>Data de entrada</label>
-        <input type="date" id="f-data">
+      <div class="form-group">
+        <label>Data</label>
+        <input type="date" id="f-data" />
       </div>
-      <div>
-        <label>Tipo de acomodação</label>
+      <div class="form-group">
+        <label>Data Pagamento</label>
+        <input type="date" id="f-datapg" />
+      </div>
+      <div class="form-group">
+        <label>Tipo de Acomodação</label>
         <select id="f-tipo">
           <option value="">Selecione...</option>
-          <option>Casal</option><option>Duplo</option><option>Individual</option>
-          <option>Triplo</option><option>Quádruplo</option><option>Single</option><option>Café da manhã</option>
+          <option>CASAL</option><option>DUPLO</option><option>TRIPLO</option>
+          <option>INDIVIDUAL</option><option>QUADRUPLO</option><option>CAFÉ DA MANHA</option>
+          <option>TRIPLO FAMILIAR</option><option>SINGLE</option>
         </select>
       </div>
-      <div>
+      <div class="form-group">
         <label>Quantidade</label>
-        <input type="number" id="f-qtd" value="1" min="1">
+        <input type="number" id="f-qtd" min="1" value="1" />
       </div>
-      <div>
-        <label>Valor unitário (R$)</label>
-        <input type="number" id="f-valor" placeholder="Ex: 180">
+      <div class="form-group">
+        <label>Valor Unitário (R$)</label>
+        <input type="number" id="f-valor" min="0" step="0.01" placeholder="0,00" />
       </div>
-      <div>
-        <label>Status do pagamento</label>
-        <select id="f-status">
-          <option value="pago">Pago</option>
-          <option value="devendo">A receber</option>
-          <option value="parcial">Parcial</option>
-        </select>
+      <div class="form-group full">
+        <label>Observações</label>
+        <input type="text" id="f-obs" placeholder="Observações opcionais..." />
       </div>
     </div>
-    <div class="form-grid">
-      <div>
-        <label>Data do pagamento</label>
-        <input type="date" id="f-data-pg">
-      </div>
-      <div>
-        <label>Observação</label>
-        <input type="text" id="f-obs" placeholder="dinheiro, crédito, etc.">
-      </div>
+    <div class="modal-acoes">
+      <button class="btn-cancelar" onclick="fecharModal()">Cancelar</button>
+      <button class="btn-salvar" id="btn-salvar" onclick="salvarReserva()">Salvar</button>
     </div>
-    <div style="display:flex;gap:8px;margin-top:4px">
-      <button class="btn btn-primary" onclick="adicionarReserva()">Salvar reserva</button>
-      <button class="btn" onclick="limparForm()">Limpar</button>
-    </div>
-    <div id="form-msg" style="margin-top:12px;font-size:13px;color:var(--color-text-success);"></div>
-  </div>
-
-  <div class="card" style="margin-top:1rem">
-    <p class="section-title" style="margin-bottom:16px">registrar refeição / jantar</p>
-    <div class="form-grid">
-      <div>
-        <label>Empresa</label>
-        <input type="text" id="r-empresa" placeholder="Ex: Nativos..." list="lista-empresas">
-      </div>
-      <div>
-        <label>Data</label>
-        <input type="date" id="r-data">
-      </div>
-      <div>
-        <label>Qtde de pessoas</label>
-        <input type="number" id="r-qtd" value="1" min="1">
-      </div>
-      <div>
-        <label>Valor por pessoa (R$)</label>
-        <input type="number" id="r-valor" value="40">
-      </div>
-      <div>
-        <label>Status</label>
-        <select id="r-status">
-          <option value="pago">Pago</option>
-          <option value="devendo">A receber</option>
-        </select>
-      </div>
-    </div>
-    <button class="btn btn-primary" onclick="adicionarRefeicao()">Salvar refeição</button>
   </div>
 </div>
 
-<div id="tab-devedores" class="section">
-  <div id="alerta-status"></div>
-  <div class="card">
-    <p class="section-title" style="margin-bottom:12px">empresas com saldo em aberto</p>
-    <div id="lista-devedores"></div>
-  </div>
-  <div style="margin-top:1rem" class="card">
-    <p class="section-title" style="margin-bottom:12px">marcar pagamento recebido</p>
-    <div style="display:flex;gap:8px;align-items:flex-end">
-      <div style="flex:1">
-        <label>Empresa</label>
-        <select id="pg-empresa" style="width:100%"></select>
-      </div>
-      <div style="flex:1">
-        <label>Valor recebido (R$)</label>
-        <input type="number" id="pg-valor" style="width:100%">
-      </div>
-      <button class="btn btn-primary" onclick="registrarPagamento()">Confirmar</button>
-    </div>
-    <div id="pg-msg" style="margin-top:8px;font-size:13px;"></div>
-  </div>
-</div>
-
-<div id="tab-historico" class="section">
-  <div style="display:flex;gap:8px;margin-bottom:1rem;align-items:flex-end">
-    <div style="flex:1"><label>Filtrar empresa</label><input type="text" id="filtro-empresa" oninput="renderHistorico()" placeholder="Digite para filtrar..."></div>
-    <div><label>Status</label><select id="filtro-status" onchange="renderHistorico()"><option value="">Todos</option><option value="pago">Pago</option><option value="devendo">A receber</option><option value="parcial">Parcial</option></select></div>
-  </div>
-  <div class="card">
-    <table>
-      <thead><tr><th>Empresa</th><th>Data</th><th>Tipo</th><th>Qtd</th><th>Valor</th><th>Status</th><th>Ação</th></tr></thead>
-      <tbody id="tabela-historico"></tbody>
-    </table>
-  </div>
-</div>
-</div>
+<div id="toast"></div>
 
 <script>
-let reservas = [];
-let refeicoes = [];
+// ── CONFIG ──
+let CONFIG = { clientId: '', sheetId: '' };
+let tokenClient = null;
+let accessToken = null;
+let todasReservas = [];
+let reservasFiltradas = [];
+let editandoLinha = null; // { sheet, row }
 
-function initData() {
-  const meses = [
-    {nome:'Jan', base: 45659}, {nome:'Fev', base: 45690},
-    {nome:'Mar', base: 45718}, {nome:'Abr', base: 45748},
-    {nome:'Mai', base: 45779}, {nome:'Jun', base: 45809},
-    {nome:'Jul', base: 45839}, {nome:'Ago', base: 45870},
-    {nome:'Set', base: 45900}
-  ];
+const EMPRESAS = ['NATIVOS','ELETRIZANTE','VEREDAS','TRILHAS TOUR','JALAPAO PARADISE','I9 JALAPAO','ANDORINHAS','MR','OFF ROAD','AGRESTE','PARK DO SOL','BOOKING','CONEXAO CERRADO','NXT TRAVEL','RADICAL TURISMO','TOCANTINS ADENTRO','JALAPAO BRASIL'];
 
-  const raw = [
-    ['ELETRIZANTE',45659,'Casal',1,160,45672,'pago'],
-    ['ELETRIZANTE',45659,'Single',1,110,45672,'pago'],
-    ['ELETRIZANTE',45659,'Triplo',1,240,45672,'pago'],
-    ['ELETRIZANTE',45659,'Triplo',1,240,45672,'pago'],
-    ['ELETRIZANTE',45659,'Triplo',1,240,45672,'pago'],
-    ['VEREDAS',45659,'Triplo',1,230,45295,'pago'],
-    ['VEREDAS',45659,'Single',1,110,45295,'pago'],
-    ['NATIVOS',45659,'Casal',1,180,45672,'pago'],
-    ['NATIVOS',45659,'Casal',1,180,45672,'pago'],
-    ['NATIVOS',45660,'Casal',1,180,45672,'pago'],
-    ['NATIVOS',45660,'Casal',1,180,45672,'pago'],
-    ['NATIVOS',45660,'Individual',1,150,45672,'pago'],
-    ['JALAPAO PARADISE',45660,'Duplo',1,125,45661,'pago'],
-    ['JALAPAO PARADISE',45660,'Duplo',1,125,45661,'pago'],
-    ['TRILHAS TOUR',45661,'Duplo',1,170,45662,'pago'],
-    ['TRILHAS TOUR',45661,'Casal',1,170,45662,'pago'],
-    ['NATIVOS',45662,'Casal',1,180,45672,'pago'],
-    ['NATIVOS',45662,'Casal',1,180,45672,'pago'],
-    ['NATIVOS',45662,'Individual',1,150,45672,'pago'],
-    ['VEREDAS',45663,'Duplo',1,160,45665,'pago'],
-    ['NATIVOS',45664,'Casal',1,180,45672,'pago'],
-    ['NATIVOS',45664,'Duplo',1,180,45672,'pago'],
-    ['TRILHAS TOUR',45665,'Duplo',1,170,45667,'pago'],
-    ['TRILHAS TOUR',45665,'Casal',1,170,45667,'pago'],
-    ['TRILHAS TOUR',45665,'Casal',1,170,45667,'pago'],
-    ['NATIVOS',45665,'Triplo',1,260,45672,'pago'],
-    ['NATIVOS',45665,'Casal',1,180,45672,'pago'],
-    ['NATIVOS',45665,'Individual',1,150,45672,'pago'],
-    ['PARK DO SOL',45666,'Casal',1,170,45669,'pago'],
-    ['NATIVOS',45667,'Casal',1,180,45672,'pago'],
-    ['NATIVOS',45667,'Casal',1,180,45672,'pago'],
-    ['NATIVOS',45667,'Individual',1,150,45672,'pago'],
-    ['VEREDAS',45670,'Duplo',1,160,45671,'pago'],
-    ['JALAPAO VIAGENS',45670,'Duplo',1,170,45671,'pago'],
-    ['JALAPAO VIAGENS',45670,'Single',1,120,45671,'pago'],
-    ['COWBOY TURISMO',45670,'Duplo',1,180,45673,'pago'],
-    ['JALAPAO DREAN',45670,'Single',1,120,45676,'pago'],
-    ['NATIVOS',45671,'Casal',1,180,45672,'pago'],
-    ['NATIVOS',45671,'Casal',1,180,45672,'pago'],
-    ['NATIVOS',45671,'Casal',1,180,45672,'pago'],
-    ['NATIVOS',45671,'Casal',1,180,45672,'pago'],
-    ['NATIVOS',45671,'Duplo',1,180,45672,'pago'],
-    ['NATIVOS',45671,'Duplo',1,180,45672,'pago'],
-    ['NATIVOS',45671,'Duplo',1,180,45672,'pago'],
-    ['NATIVOS',45671,'Individual',1,150,45672,'pago'],
-    ['NATIVOS',45671,'Individual',1,150,45672,'pago'],
-    ['NATIVOS',45672,'Casal',1,180,45672,'pago'],
-    ['NATIVOS',45672,'Casal',1,180,45672,'pago'],
-    ['NATIVOS',45672,'Duplo',1,180,45672,'pago'],
-    ['NATIVOS',45672,'Duplo',1,180,45672,'pago'],
-    ['NATIVOS',45672,'Individual',1,150,45672,'pago'],
-    ['NATIVOS',45672,'Individual',1,150,45672,'pago'],
-    ['JALAPAO PARADISE',45673,'Duplo',1,180,45677,'pago'],
-    ['NATIVOS',45673,'Casal',1,180,45691,'devendo'],
-    ['NATIVOS',45673,'Individual',1,150,45691,'devendo'],
-    ['NATIVOS',45673,'Individual',1,150,45691,'devendo'],
-    ['NATIVOS',45675,'Casal',1,180,45691,'devendo'],
-    ['NATIVOS',45675,'Casal',1,180,45691,'devendo'],
-    ['NATIVOS',45676,'Casal',1,180,45691,'devendo'],
-    ['NATIVOS',45676,'Casal',1,180,45691,'devendo'],
-    ['COWBOY TURISMO',45676,'Casal',1,180,45681,'pago'],
-    ['COWBOY TURISMO',45676,'Individual',1,150,45681,'pago'],
-    ['TRILHAS TOUR',45676,'Duplo',1,170,45677,'pago'],
-    ['TRILHAS TOUR',45676,'Duplo',1,170,45677,'pago'],
-    ['NATIVOS',45677,'Casal',1,180,45691,'devendo'],
-    ['NATIVOS',45677,'Individual',1,150,45691,'devendo'],
-    ['NATIVOS',45677,'Individual',1,150,45691,'devendo'],
-    ['ANDORINHAS',45677,'Quádruplo',1,320,45679,'pago'],
-    ['ANDORINHAS',45678,'Quádruplo',1,320,45679,'pago'],
-    ['NATIVOS',45678,'Casal',1,180,45691,'devendo'],
-    ['NATIVOS',45678,'Casal',1,180,45691,'devendo'],
-    ['NATIVOS',45678,'Individual',1,150,45691,'devendo'],
-    ['MR',45678,'Duplo',1,180,45682,'pago'],
-    ['NATIVOS',45679,'Casal',1,180,45691,'devendo'],
-    ['NATIVOS',45679,'Casal',1,180,45691,'devendo'],
-    ['NATIVOS',45679,'Individual',1,150,45691,'devendo'],
-    ['NATIVOS',45679,'Triplo',1,260,45691,'devendo'],
-    ['AGRESTE',45679,'Duplo',1,180,45684,'pago'],
-    ['VEREDAS',45679,'Single',1,110,45684,'pago'],
-    ['VEREDAS',45679,'Single',1,110,45684,'pago'],
-    ['VEREDAS',45679,'Triplo',1,250,45682,'pago'],
-    ['NATIVOS',45680,'Casal',1,180,45691,'devendo'],
-    ['NATIVOS',45680,'Casal',1,180,45691,'devendo'],
-    ['NATIVOS',45680,'Individual',1,150,45691,'devendo'],
-    ['AGRESTE',45680,'Duplo',1,180,45684,'pago'],
-    ['ANDORINHAS',45680,'Casal',1,180,45681,'pago'],
-    ['ANDORINHAS',45680,'Duplo',1,180,45681,'pago'],
-    ['VEREDAS',45682,'Triplo',1,220,45683,'pago'],
-    ['FELIPE',45682,'Casal',1,120,45683,'pago'],
-    ['LANE',45682,'Casal',1,150,45683,'pago'],
-    ['MR',45684,'Casal',1,180,45686,'pago'],
-    ['MR',45684,'Casal',1,180,45686,'pago'],
-    ['MR',45684,'Casal',1,180,45686,'pago'],
-    ['MR',45684,'Casal',1,180,45686,'pago'],
-    ['MR',45684,'Duplo',1,180,45686,'pago'],
-    ['MR',45684,'Duplo',1,180,45686,'pago'],
-    ['MR',45684,'Duplo',1,180,45686,'pago'],
-    ['MR',45684,'Triplo',1,260,45686,'pago'],
-    ['MR',45684,'Triplo',1,260,45686,'pago'],
-    ['NATIVOS',45685,'Casal',1,180,45691,'devendo'],
-    ['VEREDAS',45685,'Individual',1,110,45687,'pago'],
-    ['VEREDAS',45685,'Casal',1,170,45687,'pago'],
-    ['NATIVOS',45686,'Casal',1,180,45691,'devendo'],
-    ['NATIVOS',45686,'Triplo',1,260,45691,'devendo'],
-    ['VEREDAS',45686,'Individual',1,110,45687,'pago'],
-    ['VEREDAS',45686,'Casal',1,170,45687,'pago'],
-    ['HELDER',45686,'Individual',1,130,45687,'pago'],
-    ['NATIVOS',45687,'Triplo',1,180,45691,'devendo'],
-    ['NATIVOS',45687,'Casal',1,260,45691,'devendo'],
-    ['NATIVOS',45687,'Individual',1,150,45691,'devendo'],
-    ['NATIVOS',45687,'Individual',1,150,45691,'devendo'],
-    ['TRILHAS TOUR',45687,'Casal',1,170,45690,'pago'],
-    ['BAMBAM',45688,'Individual',1,130,45688,'pago'],
-    ['NATIVOS',45690,'Casal',1,180,45341,'pago'],
-    ['NATIVOS',45690,'Triplo',1,260,45341,'pago'],
-    ['NATIVOS',45690,'Individual',1,150,45341,'pago'],
-    ['I9 JALAPAO',45691,'Individual',1,150,45692,'pago'],
-    ['I9 JALAPAO',45691,'Individual',1,150,45692,'pago'],
-    ['I9 JALAPAO',45691,'Individual',1,150,45692,'pago'],
-    ['I9 JALAPAO',45691,'Duplo',1,180,45692,'pago'],
-    ['I9 JALAPAO',45691,'Duplo',1,180,45692,'pago'],
-    ['I9 JALAPAO',45691,'Duplo',1,180,45692,'pago'],
-    ['I9 JALAPAO',45691,'Casal',1,180,45692,'pago'],
-    ['I9 JALAPAO',45691,'Casal',1,180,45692,'pago'],
-    ['I9 JALAPAO',45691,'Casal',1,180,45692,'pago'],
-    ['I9 JALAPAO',45691,'Casal',1,180,45692,'pago'],
-    ['I9 JALAPAO',45691,'Casal',1,180,45692,'pago'],
-    ['I9 JALAPAO',45691,'Triplo',1,260,45692,'pago'],
-    ['ELETRIZANTE',45692,'Duplo',1,160,45707,'pago'],
-    ['ELETRIZANTE',45692,'Casal',1,160,45707,'pago'],
-    ['ELETRIZANTE',45692,'Casal',1,160,45707,'pago'],
-    ['VEREDAS',45693,'Casal',1,160,45696,'pago'],
-  ];
+// ── INIT ──
+window.onload = () => {
+  const saved = localStorage.getItem('pousada_config');
+  if (saved) {
+    CONFIG = JSON.parse(saved);
+    document.getElementById('input-clientid').value = CONFIG.clientId;
+    document.getElementById('input-sheetid').value = CONFIG.sheetId;
+  }
+  carregarGoogleAPI();
+  preencherDatalist();
+};
 
-  raw.forEach((r,i) => {
-    const d = new Date(1899,11,30);
-    d.setDate(d.getDate() + r[1]);
-    const dp = new Date(1899,11,30);
-    dp.setDate(dp.getDate() + r[5]);
-    reservas.push({
-      id: i, empresa: r[0], data: d, tipo: r[2], qtd: r[3],
-      valor: r[4] * r[3], dataPg: dp, status: r[6], obs: ''
-    });
-  });
-
-  const refRaw = [
-    ['NATIVOS',45671,16,40,'pago'],['NATIVOS',45672,10,40,'pago'],
-    ['NATIVOS',45673,4,40,'pago'],['I9 JALAPAO',45673,6,40,'pago'],
-    ['OFF ROAD',45673,3,40,'pago'],['JALAPAO PARADISE',45673,2,40,'pago'],
-    ['ANDORINHAS',45678,4,40,'pago'],['MR',45678,2,40,'pago'],
-    ['I9 JALAPAO',45678,4,40,'pago'],['NATIVOS',45678,5,40,'pago'],
-    ['NATIVOS',45679,8,40,'pago'],['AGRESTE',45679,2,40,'pago'],
-    ['VEREDAS',45679,2,40,'pago'],['NATIVOS',45680,5,40,'pago'],
-    ['AGRESTE',45680,2,40,'pago'],['ANDORINHAS',45680,4,40,'pago'],
-    ['MR',45684,20,40,'pago'],
-  ];
-  refRaw.forEach((r,i) => {
-    const d = new Date(1899,11,30);
-    d.setDate(d.getDate() + r[1]);
-    refeicoes.push({ id:'r'+i, empresa:r[0], data:d, qtd:r[2], valorUnit:r[3], valor:r[2]*r[3], status:r[4] });
+function preencherDatalist() {
+  const dl = document.getElementById('lista-empresas');
+  EMPRESAS.forEach(e => {
+    const opt = document.createElement('option');
+    opt.value = e;
+    dl.appendChild(opt);
   });
 }
 
-function excelDate(serial) {
-  const d = new Date(1899,11,30);
-  d.setDate(d.getDate() + serial);
-  return d;
+function carregarGoogleAPI() {
+  const s = document.createElement('script');
+  s.src = 'https://accounts.google.com/gsi/client';
+  s.async = true;
+  document.head.appendChild(s);
 }
 
-function fmtDate(d) {
-  if (!d || isNaN(d)) return '-';
-  return d.toLocaleDateString('pt-BR', {day:'2-digit',month:'2-digit'});
-}
+// ── AUTH ──
+function iniciarAuth() {
+  CONFIG.clientId = document.getElementById('input-clientid').value.trim();
+  CONFIG.sheetId = document.getElementById('input-sheetid').value.trim();
+  const err = document.getElementById('setup-error');
 
-function fmtBRL(v) {
-  return 'R$ ' + Math.round(v).toLocaleString('pt-BR');
-}
+  if (!CONFIG.clientId || !CONFIG.sheetId) {
+    err.textContent = 'Preencha o Client ID e o ID da planilha.';
+    err.style.display = 'block';
+    return;
+  }
 
-function getDevedores() {
-  const map = {};
-  [...reservas, ...refeicoes].forEach(r => {
-    if (r.status !== 'pago') {
-      if (!map[r.empresa]) map[r.empresa] = 0;
-      map[r.empresa] += r.valor;
+  err.style.display = 'none';
+  localStorage.setItem('pousada_config', JSON.stringify(CONFIG));
+
+  if (!window.google) {
+    err.textContent = 'API do Google ainda não carregou. Aguarde alguns segundos e tente novamente.';
+    err.style.display = 'block';
+    return;
+  }
+
+  tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: CONFIG.clientId,
+    scope: 'https://www.googleapis.com/auth/spreadsheets',
+    callback: (resp) => {
+      if (resp.error) { mostrarErroSetup(resp.error); return; }
+      accessToken = resp.access_token;
+      entrarNoApp();
     }
   });
-  return map;
+
+  tokenClient.requestAccessToken();
 }
 
-function getTotalRecebido() {
-  return [...reservas, ...refeicoes].filter(r => r.status === 'pago').reduce((s,r)=>s+r.valor,0);
+function entrarNoApp() {
+  document.getElementById('setup-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  carregarReservas();
+  carregarDespesas();
+  carregarResumo();
 }
 
-function getTotalAReceber() {
-  const d = getDevedores();
-  return Object.values(d).reduce((s,v)=>s+v,0);
+function sair() {
+  accessToken = null;
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('setup-screen').style.display = 'flex';
 }
 
-function renderMetrics() {
-  const totalBruto = [...reservas, ...refeicoes].reduce((s,r)=>s+r.valor,0);
-  const recebido = getTotalRecebido();
-  const aReceber = getTotalAReceber();
-  const qtdReservas = reservas.length;
-  const el = document.getElementById('metrics');
-  const pct = totalBruto > 0 ? Math.round(recebido/totalBruto*100) : 0;
-  el.innerHTML = `
-    <div class="metric"><div class="metric-label">Receita total</div><div class="metric-value">${fmtBRL(totalBruto)}</div></div>
-    <div class="metric"><div class="metric-label">Já recebido</div><div class="metric-value" style="color:#3B6D11">${fmtBRL(recebido)}</div></div>
-    <div class="metric"><div class="metric-label">A receber</div><div class="metric-value" style="color:#A32D2D">${fmtBRL(aReceber)}</div></div>
-    <div class="metric"><div class="metric-label">Reservas cadastradas</div><div class="metric-value">${qtdReservas}</div></div>
-  `;
+function mostrarErroSetup(msg) {
+  const err = document.getElementById('setup-error');
+  err.textContent = 'Erro ao autenticar: ' + msg;
+  err.style.display = 'block';
 }
 
-function renderSituacaoFin() {
-  const recebido = getTotalRecebido();
-  const aReceber = getTotalAReceber();
-  const total = recebido + aReceber;
-  const pct = total > 0 ? Math.round(recebido/total*100) : 0;
-  const el = document.getElementById('situacao-fin');
-  const status = pct >= 80 ? 'verde' : pct >= 50 ? 'amarelo' : 'vermelho';
-  const cor = status === 'verde' ? '#3B6D11' : status === 'amarelo' ? '#854F0B' : '#A32D2D';
-  const bgCor = status === 'verde' ? '#EAF3DE' : status === 'amarelo' ? '#FAEEDA' : '#FCEBEB';
-  const msg = status === 'verde' ? 'Situação saudável! A maioria dos pagamentos está em dia.' :
-              status === 'amarelo' ? 'Atenção! Mais da metade ainda está a receber.' :
-              'Alerta! Grande parte dos valores está em aberto.';
-  el.innerHTML = `
-    <div style="background:${bgCor};border-radius:8px;padding:12px;margin-bottom:12px">
-      <p style="font-size:13px;color:${cor};font-weight:500">${msg}</p>
-    </div>
-    <div style="margin-bottom:8px">
-      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--color-text-secondary);margin-bottom:4px">
-        <span>Recebido</span><span>${pct}%</span>
-      </div>
-      <div style="height:8px;background:var(--color-background-secondary);border-radius:4px">
-        <div style="height:100%;width:${pct}%;background:${cor};border-radius:4px;transition:width 0.5s"></div>
-      </div>
-    </div>
-    <div style="display:flex;justify-content:space-between;font-size:12px;margin-top:8px">
-      <span style="color:var(--color-text-secondary)">Recebido: <strong style="color:${cor}">${fmtBRL(recebido)}</strong></span>
-      <span style="color:var(--color-text-secondary)">Pendente: <strong style="color:#A32D2D">${fmtBRL(aReceber)}</strong></span>
-    </div>
-  `;
+// ── SHEETS API ──
+async function sheetsGet(range) {
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.sheetId}/values/${encodeURIComponent(range)}`;
+  const res = await fetch(url, { headers: { Authorization: `Bearer ${accessToken}` } });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
 }
 
-function renderTopDevedores() {
-  const d = getDevedores();
-  const sorted = Object.entries(d).sort((a,b)=>b[1]-a[1]).slice(0,5);
-  const max = sorted[0] ? sorted[0][1] : 1;
-  const el = document.getElementById('top-devedores');
-  if (sorted.length === 0) {
-    el.innerHTML = '<p style="font-size:13px;color:var(--color-text-secondary)">Nenhum devedor! Tudo em dia.</p>';
-    return;
-  }
-  el.innerHTML = sorted.map(([emp, val]) => `
-    <div style="margin-bottom:12px">
-      <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:3px">
-        <span style="font-weight:500">${emp}</span>
-        <span style="color:#A32D2D">${fmtBRL(val)}</span>
-      </div>
-      <div class="devedor-bar"><div class="devedor-fill" style="width:${Math.round(val/max*100)}%"></div></div>
-    </div>
-  `).join('');
-}
-
-function renderRecente() {
-  const sorted = [...reservas].sort((a,b)=>b.data-a.data).slice(0,8);
-  const el = document.getElementById('tabela-recente');
-  el.innerHTML = sorted.map(r => `
-    <tr>
-      <td style="font-weight:500">${r.empresa}</td>
-      <td>${fmtDate(r.data)}</td>
-      <td>${r.tipo}</td>
-      <td>${fmtBRL(r.valor)}</td>
-      <td><span class="badge badge-${r.status}">${r.status === 'pago' ? 'Pago' : r.status === 'devendo' ? 'A receber' : 'Parcial'}</span></td>
-      <td><button class="btn btn-sm" onclick="toggleStatus(${r.id})">${r.status === 'pago' ? 'Reabrir' : 'Marcar pago'}</button></td>
-    </tr>
-  `).join('');
-}
-
-function renderDevedores() {
-  const d = getDevedores();
-  const sorted = Object.entries(d).sort((a,b)=>b[1]-a[1]);
-  const total = sorted.reduce((s,[,v])=>s+v,0);
-  const el = document.getElementById('lista-devedores');
-  const alerta = document.getElementById('alerta-status');
-
-  if (total > 5000) {
-    alerta.innerHTML = `<div class="alert alert-red">Você tem <strong>${fmtBRL(total)}</strong> em aberto com ${sorted.length} empresa(s). Considere entrar em contato para cobrar.</div>`;
-  } else if (total > 0) {
-    alerta.innerHTML = `<div class="alert alert-green">Você tem ${fmtBRL(total)} a receber. Valor dentro do esperado.</div>`;
-  } else {
-    alerta.innerHTML = `<div class="alert alert-green">Tudo em dia! Nenhum valor pendente.</div>`;
-  }
-
-  if (sorted.length === 0) {
-    el.innerHTML = '<p style="font-size:13px;color:var(--color-text-secondary);padding:8px 0">Nenhum devedor no momento.</p>';
-    return;
-  }
-
-  el.innerHTML = sorted.map(([emp, val]) => {
-    const pendentes = [...reservas, ...refeicoes].filter(r => r.empresa === emp && r.status !== 'pago');
-    return `
-      <div class="empresa-card">
-        <div>
-          <p style="font-weight:500;font-size:14px">${emp}</p>
-          <p style="font-size:12px;color:var(--color-text-secondary)">${pendentes.length} item(s) pendente(s)</p>
-        </div>
-        <div style="text-align:right">
-          <p style="font-weight:500;color:#A32D2D">${fmtBRL(val)}</p>
-          <button class="btn btn-sm" style="margin-top:4px" onclick="marcarEmpresaPaga('${emp}')">Quitar tudo</button>
-        </div>
-      </div>`;
-  }).join('');
-
-  const pgSel = document.getElementById('pg-empresa');
-  pgSel.innerHTML = sorted.map(([emp])=>`<option value="${emp}">${emp}</option>`).join('');
-}
-
-function renderHistorico() {
-  const filtroEmp = (document.getElementById('filtro-empresa').value || '').toLowerCase();
-  const filtroStatus = document.getElementById('filtro-status').value;
-  const filtered = reservas.filter(r => {
-    const empOk = !filtroEmp || r.empresa.toLowerCase().includes(filtroEmp);
-    const stOk = !filtroStatus || r.status === filtroStatus;
-    return empOk && stOk;
-  }).sort((a,b)=>b.data-a.data);
-  const el = document.getElementById('tabela-historico');
-  el.innerHTML = filtered.map(r => `
-    <tr>
-      <td style="font-weight:500">${r.empresa}</td>
-      <td>${fmtDate(r.data)}</td>
-      <td>${r.tipo}</td>
-      <td>${r.qtd}</td>
-      <td>${fmtBRL(r.valor)}</td>
-      <td><span class="badge badge-${r.status}">${r.status === 'pago' ? 'Pago' : r.status === 'devendo' ? 'A receber' : 'Parcial'}</span></td>
-      <td><button class="btn btn-sm" onclick="toggleStatus(${r.id})">${r.status === 'pago' ? 'Reabrir' : 'Pago'}</button></td>
-    </tr>
-  `).join('');
-}
-
-function renderAll() {
-  renderMetrics();
-  renderSituacaoFin();
-  renderTopDevedores();
-  renderRecente();
-  renderDevedores();
-  renderHistorico();
-  updateDatalist();
-}
-
-function toggleStatus(id) {
-  const r = reservas.find(x=>x.id===id);
-  if (r) { r.status = r.status === 'pago' ? 'devendo' : 'pago'; renderAll(); }
-}
-
-function marcarEmpresaPaga(emp) {
-  [...reservas, ...refeicoes].forEach(r => { if(r.empresa===emp) r.status='pago'; });
-  renderAll();
-}
-
-function registrarPagamento() {
-  const emp = document.getElementById('pg-empresa').value;
-  const val = parseFloat(document.getElementById('pg-valor').value);
-  if (!emp || isNaN(val)) { document.getElementById('pg-msg').innerHTML = '<span style="color:#A32D2D">Preencha empresa e valor.</span>'; return; }
-  let restante = val;
-  [...reservas, ...refeicoes].filter(r=>r.empresa===emp&&r.status!=='pago').forEach(r => {
-    if (restante <= 0) return;
-    if (restante >= r.valor) { r.status='pago'; restante -= r.valor; }
-    else { r.status='parcial'; restante=0; }
+async function sheetsAppend(range, values) {
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.sheetId}/values/${encodeURIComponent(range)}:append?valueInputOption=USER_ENTERED`;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ values })
   });
-  document.getElementById('pg-msg').innerHTML = `<span style="color:#3B6D11">Pagamento de ${fmtBRL(val)} registrado para ${emp}.</span>`;
-  renderAll();
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
 }
 
-function adicionarReserva() {
-  const empresa = document.getElementById('f-empresa').value.trim().toUpperCase();
+async function sheetsUpdate(range, values) {
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.sheetId}/values/${encodeURIComponent(range)}?valueInputOption=USER_ENTERED`;
+  const res = await fetch(url, {
+    method: 'PUT',
+    headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ values })
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+async function sheetsClear(range) {
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.sheetId}/values/${encodeURIComponent(range)}:clear`;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${accessToken}` }
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+// ── RESERVAS ──
+const MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+async function carregarReservas() {
+  const corpo = document.getElementById('tabela-corpo');
+  corpo.innerHTML = '<div class="loading"><div class="spinner"></div>Carregando reservas...</div>';
+
+  try {
+    todasReservas = [];
+
+    for (let mi = 0; mi < 12; mi++) {
+      const mes = MESES[mi];
+      let sheetName = `OCUPAÇÃO DIÁRIA ${mes.toUpperCase()}`;
+      // Try to get data
+      try {
+        const data = await sheetsGet(`${sheetName}!A:G`);
+        const rows = data.values || [];
+        rows.forEach((row, idx) => {
+          if (idx < 2) return; // skip headers
+          if (!row[0] || row[0] === 'EMPRESA') return;
+          if (row[0].toString().startsWith('VALOR TOTAL') || row[0].toString().startsWith('RESULTADO')) return;
+          todasReservas.push({
+            id: `${mes}-${idx}`,
+            mes,
+            sheetRow: idx + 1,
+            sheet: sheetName,
+            empresa: (row[0] || '').toString().trim(),
+            data: row[1] || '',
+            tipo: (row[2] || '').toString().trim().toUpperCase(),
+            qtd: row[3] || '',
+            valor: row[4] || '',
+            obs: row[5] || '',
+            dataPg: row[6] || ''
+          });
+        });
+      } catch(e) {
+        // Aba pode não existir
+      }
+    }
+
+    // Also load RESERVAS POR EMPRESAS
+    try {
+      const data = await sheetsGet(`RESERVAS POR EMPRESAS!A:G`);
+      const rows = data.values || [];
+      rows.forEach((row, idx) => {
+        if (idx < 2) return;
+        if (!row[0] || row[0] === 'EMPRESA') return;
+        if (row[0].toString().startsWith('VALOR TOTAL') || row[0].toString().startsWith('CONTROLE') || row[0].toString().startsWith('RESULTADO')) return;
+        const dataVal = row[1] || '';
+        const mes = dataVal ? getMesFromDate(dataVal) : 'Janeiro';
+        todasReservas.push({
+          id: `res-${idx}`,
+          mes,
+          sheetRow: idx + 1,
+          sheet: 'RESERVAS POR EMPRESAS',
+          empresa: (row[0] || '').toString().trim(),
+          data: dataVal,
+          tipo: (row[2] || '').toString().trim().toUpperCase(),
+          qtd: row[3] || '',
+          valor: row[4] || '',
+          obs: row[5] || '',
+          dataPg: row[6] || ''
+        });
+      });
+    } catch(e) {}
+
+    atualizarCards();
+    filtrar();
+  } catch (e) {
+    corpo.innerHTML = `<div class="empty"><div class="empty-icon">⚠️</div>Erro ao carregar: ${e.message}</div>`;
+  }
+}
+
+function getMesFromDate(val) {
+  if (!val) return 'Janeiro';
+  const d = typeof val === 'number' ? excelDateToJS(val) : new Date(val);
+  if (isNaN(d)) return 'Janeiro';
+  return MESES[d.getMonth()];
+}
+
+function excelDateToJS(serial) {
+  const epoch = new Date(1899, 11, 30);
+  return new Date(epoch.getTime() + serial * 86400000);
+}
+
+function formatDate(val) {
+  if (!val) return '—';
+  if (typeof val === 'number') {
+    const d = excelDateToJS(val);
+    return d.toLocaleDateString('pt-BR');
+  }
+  try {
+    const d = new Date(val);
+    if (!isNaN(d)) return d.toLocaleDateString('pt-BR');
+  } catch(e) {}
+  return val.toString();
+}
+
+function formatValor(v) {
+  if (!v) return '—';
+  const n = parseFloat(v);
+  if (isNaN(n)) return v;
+  return 'R$ ' + n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function atualizarCards() {
+  const total = todasReservas.length;
+  const valorTotal = todasReservas.reduce((s,r) => s + (parseFloat(r.valor) || 0), 0);
+  const empresas = new Set(todasReservas.map(r => r.empresa)).size;
+
+  document.getElementById('cards-reservas').innerHTML = `
+    <div class="card-stat">
+      <div class="card-label">Total de Reservas</div>
+      <div class="card-valor">${total}</div>
+      <div class="card-sub">em todos os meses</div>
+    </div>
+    <div class="card-stat destaque">
+      <div class="card-label">Valor Total</div>
+      <div class="card-valor">${formatValor(valorTotal)}</div>
+      <div class="card-sub">soma de hospedagens</div>
+    </div>
+    <div class="card-stat info">
+      <div class="card-label">Empresas</div>
+      <div class="card-valor">${empresas}</div>
+      <div class="card-sub">agências diferentes</div>
+    </div>
+  `;
+}
+
+function filtrar() {
+  const busca = document.getElementById('busca').value.toLowerCase();
+  const mes = document.getElementById('filtro-mes').value;
+  const tipo = document.getElementById('filtro-tipo').value.toUpperCase();
+
+  reservasFiltradas = todasReservas.filter(r => {
+    if (busca && !r.empresa.toLowerCase().includes(busca)) return false;
+    if (mes && r.mes !== mes) return false;
+    if (tipo && r.tipo !== tipo) return false;
+    return true;
+  });
+
+  renderTabela();
+}
+
+function getBadgeTipo(tipo) {
+  const t = tipo.toLowerCase();
+  let cls = '';
+  if (t.includes('casal')) cls = 'casal';
+  else if (t.includes('duplo')) cls = 'duplo';
+  else if (t.includes('triplo')) cls = 'triplo';
+  else if (t.includes('individual') || t.includes('single')) cls = 'individual';
+  else if (t.includes('quadruplo')) cls = 'quadruplo';
+  return `<span class="badge-tipo ${cls}">${tipo || '—'}</span>`;
+}
+
+function renderTabela() {
+  const corpo = document.getElementById('tabela-corpo');
+  const total = reservasFiltradas.reduce((s,r) => s + (parseFloat(r.valor) || 0), 0);
+
+  document.getElementById('info-registros').textContent = `${reservasFiltradas.length} registro(s) encontrado(s)`;
+  document.getElementById('info-total').textContent = reservasFiltradas.length ? `Total: ${formatValor(total)}` : '';
+
+  if (!reservasFiltradas.length) {
+    corpo.innerHTML = '<div class="empty"><div class="empty-icon">🌿</div>Nenhuma reserva encontrada</div>';
+    return;
+  }
+
+  let html = `<table><thead><tr>
+    <th>Empresa</th><th>Mês</th><th>Data</th><th>Acomodação</th>
+    <th>Qtd</th><th>Valor Unit.</th><th>Data Pag.</th><th>Obs.</th><th>Ações</th>
+  </tr></thead><tbody>`;
+
+  reservasFiltradas.forEach((r, i) => {
+    html += `<tr>
+      <td class="td-empresa">${r.empresa || '—'}</td>
+      <td>${r.mes}</td>
+      <td>${formatDate(r.data)}</td>
+      <td>${getBadgeTipo(r.tipo)}</td>
+      <td>${r.qtd || '—'}</td>
+      <td class="td-valor">${formatValor(r.valor)}</td>
+      <td>${formatDate(r.dataPg)}</td>
+      <td>${r.obs || '—'}</td>
+      <td><div class="td-acoes">
+        <button class="btn-editar" title="Editar" onclick="editarReserva(${i})">✏️</button>
+        <button class="btn-deletar" title="Excluir" onclick="excluirReserva(${i})">🗑️</button>
+      </div></td>
+    </tr>`;
+  });
+
+  html += '</tbody></table>';
+  corpo.innerHTML = html;
+}
+
+// ── MODAL ──
+function abrirModal(reserva = null, idx = null) {
+  editandoLinha = reserva ? { sheet: reserva.sheet, row: reserva.sheetRow } : null;
+  document.getElementById('modal-titulo').textContent = reserva ? 'Editar Reserva' : 'Nova Reserva';
+
+  // Preenche campos
+  document.getElementById('f-empresa').value = reserva?.empresa || '';
+  document.getElementById('f-tipo').value = reserva?.tipo || '';
+  document.getElementById('f-qtd').value = reserva?.qtd || 1;
+  document.getElementById('f-valor').value = reserva?.valor || '';
+  document.getElementById('f-obs').value = reserva?.obs || '';
+
+  // Datas
+  const d = reserva?.data;
+  if (d && typeof d === 'number') {
+    document.getElementById('f-data').value = excelDateToJS(d).toISOString().split('T')[0];
+  } else {
+    document.getElementById('f-data').value = d || new Date().toISOString().split('T')[0];
+  }
+
+  const dp = reserva?.dataPg;
+  if (dp && typeof dp === 'number') {
+    document.getElementById('f-datapg').value = excelDateToJS(dp).toISOString().split('T')[0];
+  } else {
+    document.getElementById('f-datapg').value = dp || '';
+  }
+
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function fecharModal() {
+  document.getElementById('modal-overlay').classList.remove('open');
+  editandoLinha = null;
+}
+
+function fecharModalFora(e) {
+  if (e.target === document.getElementById('modal-overlay')) fecharModal();
+}
+
+function editarReserva(idx) {
+  abrirModal(reservasFiltradas[idx], idx);
+}
+
+async function excluirReserva(idx) {
+  const r = reservasFiltradas[idx];
+  if (!confirm(`Excluir reserva de ${r.empresa}?`)) return;
+
+  try {
+    await sheetsClear(`${r.sheet}!A${r.sheetRow}:G${r.sheetRow}`);
+    toast('Reserva excluída!');
+    carregarReservas();
+  } catch(e) {
+    toast('Erro ao excluir: ' + e.message, true);
+  }
+}
+
+async function salvarReserva() {
+  const empresa = document.getElementById('f-empresa').value.trim();
   const data = document.getElementById('f-data').value;
   const tipo = document.getElementById('f-tipo').value;
-  const qtd = parseInt(document.getElementById('f-qtd').value) || 1;
-  const valor = parseFloat(document.getElementById('f-valor').value);
-  const status = document.getElementById('f-status').value;
+  const qtd = document.getElementById('f-qtd').value;
+  const valor = document.getElementById('f-valor').value;
   const obs = document.getElementById('f-obs').value;
-  if (!empresa || !data || !tipo || isNaN(valor)) {
-    document.getElementById('form-msg').innerHTML = '<span style="color:#A32D2D">Preencha todos os campos obrigatórios.</span>';
+  const dataPg = document.getElementById('f-datapg').value;
+
+  if (!empresa || !data || !tipo) {
+    toast('Preencha empresa, data e tipo.', true);
     return;
   }
-  const d = new Date(data + 'T00:00:00');
-  const novaId = reservas.length;
-  reservas.push({ id: novaId, empresa, data: d, tipo, qtd, valor: valor*qtd, status, obs });
-  document.getElementById('form-msg').innerHTML = `<span style="color:#3B6D11">Reserva de ${empresa} salva com sucesso!</span>`;
-  limparForm();
-  renderAll();
+
+  const btn = document.getElementById('btn-salvar');
+  btn.disabled = true;
+  btn.textContent = 'Salvando...';
+
+  const row = [empresa, data, tipo, qtd, valor, obs, dataPg];
+
+  try {
+    if (editandoLinha) {
+      await sheetsUpdate(`${editandoLinha.sheet}!A${editandoLinha.row}:G${editandoLinha.row}`, [row]);
+      toast('Reserva atualizada!');
+    } else {
+      // Determina a aba correta pelo mês
+      const mes = MESES[new Date(data).getMonth()];
+      let sheetAlvo = `OCUPAÇÃO DIÁRIA ${mes.toUpperCase()}`;
+      // Tenta append; se aba não existir, usa RESERVAS POR EMPRESAS
+      try {
+        await sheetsAppend(`${sheetAlvo}!A:G`, [row]);
+      } catch(e2) {
+        await sheetsAppend(`RESERVAS POR EMPRESAS!A:G`, [row]);
+      }
+      toast('Reserva adicionada!');
+    }
+
+    fecharModal();
+    carregarReservas();
+  } catch(e) {
+    toast('Erro: ' + e.message, true);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Salvar';
+  }
 }
 
-function adicionarRefeicao() {
-  const empresa = document.getElementById('r-empresa').value.trim().toUpperCase();
-  const data = document.getElementById('r-data').value;
-  const qtd = parseInt(document.getElementById('r-qtd').value) || 1;
-  const valorUnit = parseFloat(document.getElementById('r-valor').value) || 40;
-  const status = document.getElementById('r-status').value;
-  if (!empresa || !data) return;
-  const d = new Date(data + 'T00:00:00');
-  refeicoes.push({ id: 'r'+Date.now(), empresa, data:d, qtd, valorUnit, valor: qtd*valorUnit, status });
-  renderAll();
-  document.getElementById('r-empresa').value='';
-  document.getElementById('r-data').value='';
+// ── DESPESAS ──
+async function carregarDespesas() {
+  try {
+    const data = await sheetsGet(`DESPESAS MENSAIS !A:Z`);
+    const rows = data.values || [];
+    renderDespesas(rows);
+  } catch(e) {
+    document.getElementById('despesas-corpo').innerHTML =
+      `<div class="empty"><div class="empty-icon">⚠️</div>Erro: ${e.message}</div>`;
+  }
 }
 
-function limparForm() {
-  ['f-empresa','f-data','f-tipo','f-qtd','f-valor','f-obs','f-data-pg'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el.tagName==='SELECT') el.selectedIndex=0;
-    else if (id==='f-qtd') el.value='1';
-    else el.value='';
+function renderDespesas(rows) {
+  if (!rows.length) {
+    document.getElementById('despesas-corpo').innerHTML = '<div class="empty">Sem dados de despesas</div>';
+    return;
+  }
+
+  // Row 0 = headers (DESPESAS FIXAS, JANEIRO, FEVEREIRO...)
+  const headers = rows[0] || [];
+  const mesesCols = headers.slice(1).filter(h => h && MESES.map(m=>m.toUpperCase()).includes(h.toString().toUpperCase().trim()));
+  const mesesIdx = mesesCols.map(m => headers.indexOf(m));
+
+  let html = '<div class="despesas-grid">';
+
+  mesesIdx.forEach((colIdx, mi) => {
+    const mesNome = mesesCols[mi];
+    let itens = [];
+    let total = 0;
+
+    rows.slice(1).forEach(row => {
+      const nome = row[0];
+      const val = parseFloat((row[colIdx] || '').toString().replace(',','.'));
+      if (nome && val && !isNaN(val) && !nome.toString().startsWith('RESULTADO')) {
+        itens.push({ nome, val });
+        total += val;
+      }
+    });
+
+    if (!itens.length) return;
+
+    html += `<div class="despesa-card">
+      <div class="despesa-mes">${mesNome} <span class="despesa-total">${formatValor(total)}</span></div>`;
+
+    itens.forEach(item => {
+      html += `<div class="despesa-item">
+        <span class="despesa-nome">${item.nome}</span>
+        <span class="despesa-valor">${formatValor(item.val)}</span>
+      </div>`;
+    });
+
+    html += '</div>';
   });
+
+  html += '</div>';
+  document.getElementById('despesas-corpo').innerHTML = html;
 }
 
-function updateDatalist() {
-  const empresas = [...new Set(reservas.map(r=>r.empresa))].sort();
-  document.getElementById('lista-empresas').innerHTML = empresas.map(e=>`<option value="${e}">`).join('');
+// ── RESUMO ──
+async function carregarResumo() {
+  try {
+    const data = await sheetsGet(`OCUPAÇÃO MES GERAL!A:D`);
+    const rows = data.values || [];
+    renderResumo(rows);
+  } catch(e) {
+    document.getElementById('resumo-corpo').innerHTML =
+      `<div class="empty"><div class="empty-icon">⚠️</div>Erro: ${e.message}</div>`;
+  }
 }
 
-function showTab(name) {
-  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  document.getElementById('tab-'+name).classList.add('active');
-  document.querySelectorAll('.tab').forEach(t => { if(t.textContent.toLowerCase().includes(name==='nova'?'nova':name==='devedores'?'deve':name==='historico'?'hist':'pain')) t.classList.add('active'); });
-  const map = {dashboard:0, nova:1, devedores:2, historico:3};
-  document.querySelectorAll('.tab')[map[name]].classList.add('active');
+function renderResumo(rows) {
+  let totalHosp = 0, totalValor = 0, mesesAtivos = 0;
+  const dadosMeses = [];
+
+  rows.forEach(row => {
+    if (!row[0] || row[0] === 'RESULTADO POUSADA ECOOGICA') return;
+    const mes = row[0].toString().trim();
+    if (!MESES.map(m=>m.toUpperCase()).includes(mes.toUpperCase())) return;
+    const qtd = parseInt(row[1]) || 0;
+    const ocup = parseFloat(row[2]) || 0;
+    const valor = parseFloat(row[3]) || 0;
+    if (qtd > 0) { totalHosp += qtd; totalValor += valor; mesesAtivos++; }
+    dadosMeses.push({ mes, qtd, ocup, valor });
+  });
+
+  document.getElementById('cards-resumo').innerHTML = `
+    <div class="card-stat">
+      <div class="card-label">Hospedagens Anuais</div>
+      <div class="card-valor">${totalHosp.toLocaleString('pt-BR')}</div>
+      <div class="card-sub">${mesesAtivos} meses com dados</div>
+    </div>
+    <div class="card-stat destaque">
+      <div class="card-label">Receita Bruta Anual</div>
+      <div class="card-valor">${formatValor(totalValor)}</div>
+      <div class="card-sub">total acumulado</div>
+    </div>
+    <div class="card-stat info">
+      <div class="card-label">Média Mensal</div>
+      <div class="card-valor">${mesesAtivos ? formatValor(totalValor/mesesAtivos) : '—'}</div>
+      <div class="card-sub">por mês ativo</div>
+    </div>
+  `;
+
+  let html = `<table><thead><tr>
+    <th>Mês</th><th>Hospedagens</th><th>Ocupação %</th><th>Valor Bruto</th>
+  </tr></thead><tbody>`;
+
+  dadosMeses.forEach(r => {
+    const ocupPct = (r.ocup * 100).toFixed(1) + '%';
+    const barWidth = Math.round(r.ocup * 100);
+    html += `<tr>
+      <td style="font-weight:600">${r.mes.charAt(0)+r.mes.slice(1).toLowerCase()}</td>
+      <td>${r.qtd || '—'}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="flex:1;background:var(--areia-escura);border-radius:4px;height:6px">
+            <div style="width:${barWidth}%;background:var(--verde-claro);height:6px;border-radius:4px"></div>
+          </div>
+          <span style="font-size:12px;color:var(--texto-suave);min-width:38px">${ocupPct}</span>
+        </div>
+      </td>
+      <td class="td-valor">${formatValor(r.valor)}</td>
+    </tr>`;
+  });
+
+  html += '</tbody></table>';
+  document.getElementById('resumo-corpo').innerHTML = html;
 }
 
-initData();
-renderAll();
+// ── TABS ──
+function mudarTab(nome, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tab-' + nome).classList.add('active');
+}
+
+// ── TOAST ──
+function toast(msg, erro = false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'show' + (erro ? ' erro' : '');
+  setTimeout(() => t.className = '', 3000);
+}
 </script>
+</body>
+</html>
